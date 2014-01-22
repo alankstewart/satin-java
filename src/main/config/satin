@@ -1,0 +1,10 @@
+#!/bin/bash
+
+#----------------------------------------------------------------------
+# Satin Startup Script
+#----------------------------------------------------------------------
+
+export CLASS_PATH=lib/'*'
+export CLASS_PATH=$CLASS_PATH:etc
+
+java -Xms128m -Xmx1024m -cp $CLASS_PATH alankstewart.satin.Satin -concurrent
