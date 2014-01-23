@@ -16,7 +16,7 @@
             <email>alankstewart at gmail.com</email>
             <organization>Alan Stewart</organization>
             <roles>
-                <role>Senior Java Developer</role>
+                <role>Software Engineer</role>
             </roles>
             <timezone>+10</timezone>
         </developer>
@@ -45,7 +45,6 @@
                 <configuration>
                     <excludes>
                         <exclude>*.dat</exclude>
-                        <exclude>*.properties</exclude>
                     </excludes>
                 </configuration>
             </plugin>
