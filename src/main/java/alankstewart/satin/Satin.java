@@ -51,7 +51,7 @@ public final class Satin {
         final Satin satin = new Satin();
         try {
             satin.calculate(args.length > 0 && args[0].equals("-concurrent"));
-        } catch (final IOException | RuntimeException e) {
+        } catch (final Exception e) {
             out.format("Failed to complete: %s\n", e.getMessage());
         } finally {
             out.format("The time was %s seconds\n", valueOf(nanoTime() - start)
@@ -108,11 +108,13 @@ public final class Satin {
                     .format("Start date: %s\n\nGaussian Beam\n\nPressure in Main Discharge = %skPa\nSmall-signal Gain = %s\nCO2 via %s\n\nPin\t\tPout\t\tSat. Int.\tln(Pout/Pin)\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n", Calendar
                             .getInstance().getTime(), laser.getDischargePressure(), laser.getSmallSignalGain(), laser
                             .getCarbonDioxide().name());
+
             inputPowers.forEach(inputPower -> gaussianCalculation(inputPower, laser.getSmallSignalGain()).forEach
                     (gaussian -> formatter.format("%s\t\t%s\t\t%s\t\t%s\t\t%s\n", gaussian.getInputPower(),
                             gaussian.getOutputPower(), gaussian.getSaturationIntensity(),
                             gaussian.getLogOutputPowerDividedByInputPower(), gaussian.getOutputPowerMinusInputPower()
                     )));
+
             formatter.format("\nEnd date: %s\n", Calendar.getInstance().getTime());
         }
     }
