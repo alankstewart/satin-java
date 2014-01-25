@@ -54,8 +54,7 @@ public final class Satin {
         } catch (final Exception e) {
             out.format("Failed to complete: %s\n", e.getMessage());
         } finally {
-            out.format("The time was %s seconds\n", valueOf(nanoTime() - start)
-                    .divide(valueOf(1E9), 3, ROUND_HALF_UP));
+            out.format("The time was %s seconds\n", valueOf(nanoTime() - start).divide(valueOf(1E9), 3, ROUND_HALF_UP));
         }
     }
 
