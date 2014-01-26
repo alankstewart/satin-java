@@ -26,6 +26,7 @@ import static java.lang.Float.parseFloat;
 import static java.lang.Integer.parseInt;
 import static java.lang.Math.PI;
 import static java.lang.Math.exp;
+import static java.lang.Math.floor;
 import static java.lang.Math.pow;
 import static java.lang.System.nanoTime;
 import static java.lang.System.out;
@@ -121,9 +122,10 @@ public final class Satin {
     private List<Gaussian> gaussianCalculation(final int inputPower, final float smallSignalGain) {
         final List<Gaussian> gaussians = new ArrayList<>();
 
+        final int incr = (int) floor((double) INCR / 2);
         final double[] expr1 = new double[INCR];
         for (int i = 0; i < INCR; i++) {
-            final double zInc = ((double) i - 4000) / 25;
+            final double zInc = ((double) i - incr) / 25;
             expr1[i] = 2 * zInc * DZ / (Z12 + pow(zInc, 2));
         }
 
