@@ -50,7 +50,11 @@ public final class Satin {
         final long start = nanoTime();
         final Satin satin = new Satin();
         try {
-            satin.calculate(args.length > 0 && args[0].equals("-concurrent"));
+            if (args.length > 0 && args[0].equals("-concurrent")) {
+                satin.calculateConcurrently();
+            } else {
+                satin.calculate();
+            }
         } catch (final Exception e) {
             out.format("Failed to complete: %s\n", e.getMessage());
         } finally {
@@ -58,42 +62,45 @@ public final class Satin {
         }
     }
 
-    private void calculate(final boolean concurrent) throws IOException {
+    private void calculateConcurrently() throws IOException {
         final List<Integer> inputPowers = getInputPowers();
         final List<Laser> laserData = getLaserData();
 
-        if (concurrent) {
-            final List<Callable<Void>> tasks = laserData.stream().map(laser -> new Callable<Void>() {
-                @Override
-                public Void call() throws Exception {
-                    process(inputPowers, laser);
-                    return null;
-                }
-            }).collect(Collectors.toList());
-
-            final ExecutorService executorService = Executors.newCachedThreadPool();
-            try {
-                for (final Future<Void> future : executorService.invokeAll(tasks)) {
-                    future.get();
-                }
-            } catch (final InterruptedException | ExecutionException e) {
-                throw new IllegalStateException(e);
-            } finally {
-                executorService.shutdown();
-            }
-        } else {
-            for (final Laser laser : laserData) {
+        final List<Callable<Void>> tasks = laserData.stream().map(laser -> new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
                 process(inputPowers, laser);
+                return null;
             }
+        }).collect(Collectors.toList());
+
+        final ExecutorService executorService = Executors.newCachedThreadPool();
+        try {
+            for (final Future<Void> future : executorService.invokeAll(tasks)) {
+                future.get();
+            }
+        } catch (final InterruptedException | ExecutionException e) {
+            throw new IllegalStateException(e);
+        } finally {
+            executorService.shutdown();
+        }
+    }
+
+    private void calculate() throws IOException {
+        final List<Integer> inputPowers = getInputPowers();
+        final List<Laser> laserData = getLaserData();
+
+        for (final Laser laser : laserData) {
+            process(inputPowers, laser);
         }
     }
 
     private List<Integer> getInputPowers() throws IOException {
-       return readFile("/pin.dat").stream().map(line -> parseInt(line)).collect(Collectors.toList());
+       return readDataFile("/pin.dat").stream().map(line -> parseInt(line)).collect(Collectors.toList());
     }
 
     private List<Laser> getLaserData() throws IOException {
-        return readFile("/laser.dat").stream().map(line -> line.split("  ")).map(gainMediumParams -> new Laser
+        return readDataFile("/laser.dat").stream().map(line -> line.split("  ")).map(gainMediumParams -> new Laser
                 (gainMediumParams[0], parseFloat(gainMediumParams[1]
                 .trim()), parseInt(gainMediumParams[2].trim()), CO2.valueOf(gainMediumParams[3].trim()))).collect
                 (Collectors.toList());
@@ -146,7 +153,7 @@ public final class Satin {
         return unmodifiableList(gaussians);
     }
 
-    private List<String> readFile(final String name) throws IOException {
+    private List<String> readDataFile(final String name) throws IOException {
         final List<String> lines = new ArrayList<>();
         try (final InputStream inputStream = getClass().getResourceAsStream(name);
              final Scanner scanner = new Scanner(inputStream)) {
