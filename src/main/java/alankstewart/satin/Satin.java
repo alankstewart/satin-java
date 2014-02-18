@@ -88,7 +88,11 @@ public final class Satin {
 
     private void calculate() throws IOException {
         final List<Integer> inputPowers = getInputPowers();
-        getLaserData().forEach(laser -> process(inputPowers, laser));
+        final List<Laser> laserData = getLaserData();
+
+        for (final Laser laser : laserData) {
+            process(inputPowers, laser);
+        }
     }
 
     private List<Integer> getInputPowers() throws IOException {
