@@ -62,7 +62,7 @@ public final class Satin {
         }
     }
 
-    private void calculateConcurrently() throws IOException, ExecutionException, InterruptedException {
+    private void calculateConcurrently() throws IOException {
         final List<Integer> inputPowers = getInputPowers();
         final List<Laser> laserData = getLaserData();
 
@@ -76,7 +76,11 @@ public final class Satin {
 
         final ExecutorService executorService = Executors.newCachedThreadPool();
         try {
-        	executorService.invokeAll(tasks).forEach(future -> future.get());
+            for (final Future<Void> future : executorService.invokeAll(tasks)) {
+                future.get();
+            }
+        } catch (final InterruptedException | ExecutionException e) {
+            throw new IllegalStateException(e);
         } finally {
             executorService.shutdown();
         }
