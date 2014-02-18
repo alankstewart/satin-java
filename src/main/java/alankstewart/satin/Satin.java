@@ -107,7 +107,7 @@ public final class Satin {
     }
 
     private void process(final List<Integer> inputPowers, final Laser laser) throws IOException {
-        final Path path = Paths.get(System.getProperty("user.home"), "tmp", laser.getOutputFile());
+        final Path path = Paths.get(System.getProperty("java.io.tmpdir"), laser.getOutputFile());
         Files.deleteIfExists(path);
         try (final Formatter formatter = new Formatter(Files.createFile(path).toFile())) {
             formatter
