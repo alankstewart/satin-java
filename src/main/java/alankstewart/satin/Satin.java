@@ -153,9 +153,9 @@ public final class Satin {
         return unmodifiableList(gaussians);
     }
 
-    private List<String> readDataFile(final String name) throws IOException {
+    private List<String> readDataFile(final String fileName) throws IOException {
         final List<String> lines = new ArrayList<>();
-        try (final InputStream inputStream = getClass().getResourceAsStream(name);
+        try (final InputStream inputStream = getClass().getResourceAsStream(fileName);
              final Scanner scanner = new Scanner(inputStream)) {
             while (scanner.hasNext()) {
                 final String line = scanner.nextLine();
