@@ -20,17 +20,24 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static alankstewart.satin.Laser.CO2;
 import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;
-import static java.lang.Math.*;
+import static java.lang.Math.PI;
+import static java.lang.Math.exp;
+import static java.lang.Math.pow;
 import static java.lang.System.nanoTime;
 import static java.lang.System.out;
 import static java.math.BigDecimal.ROUND_HALF_UP;
 import static java.math.BigDecimal.valueOf;
 import static java.nio.charset.Charset.defaultCharset;
-import static java.nio.file.StandardOpenOption.*;
+import static java.nio.file.Files.lines;
+import static java.nio.file.StandardOpenOption.CREATE;
+import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
+import static java.nio.file.StandardOpenOption.WRITE;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
@@ -48,6 +55,7 @@ public final class Satin {
     private static final double EXPR = 2 * PI * DR;
     private static final int INCR = 8001;
     private static final Path PATH = Paths.get(System.getProperty("user.dir"));
+    private static final Pattern LASER = Pattern.compile("((md|pi)[a-z]{2}\\.out)\\s+([0-9]{2}\\.[0-9])\\s+([0-9]+)\\s+(?i:\\2)");
 
     public static void main(final String[] args) {
         final long start = nanoTime();
@@ -67,14 +75,9 @@ public final class Satin {
 
     private void calculateConcurrently() throws IOException, URISyntaxException {
         final List<Integer> inputPowers = getInputPowers();
-        final List<Laser> laserData = getLaserData();
-
-        final List<Callable<Void>> tasks = laserData.parallelStream().map(laser -> new Callable<Void>() {
-            @Override
-            public Void call() throws Exception {
-                process(inputPowers, laser);
-                return null;
-            }
+        final List<Callable<Void>> tasks = getLaserData().parallelStream().map(laser -> (Callable<Void>) () -> {
+            process(inputPowers, laser);
+            return null;
         }).collect(toList());
 
         final ExecutorService executorService = Executors.newCachedThreadPool();
@@ -91,22 +94,19 @@ public final class Satin {
 
     private void calculate() throws IOException, URISyntaxException {
         final List<Integer> inputPowers = getInputPowers();
-        final List<Laser> laserData = getLaserData();
-
-        for (final Laser laser : laserData) {
-            process(inputPowers, laser);
-        }
+        getLaserData().forEach(laser -> process(inputPowers, laser));
     }
 
     private List<Integer> getInputPowers() throws IOException, URISyntaxException {
-        return Files.lines(getDataFilePath("pin.dat")).map(line -> parseInt(line)).collect(toList());
+        return lines(getDataFilePath("pin.dat")).map(Integer::parseInt).collect(toList());
     }
 
     private List<Laser> getLaserData() throws IOException, URISyntaxException {
-        return Files.lines(getDataFilePath("laser.dat")).map(line -> line.split("  ")).map(gainMediumParams -> new Laser
-                (gainMediumParams[0], parseDouble(gainMediumParams[1]
-                        .trim()), parseInt(gainMediumParams[2].trim()), CO2.valueOf(gainMediumParams[3].trim()))).collect
-                (toList());
+        return lines(getDataFilePath("laser.dat"))
+                .map(LASER::matcher)
+                .filter(Matcher::matches)
+                .map(m -> new Laser(m.group(1), parseDouble(m.group(3)), parseInt(m.group(4)), CO2.valueOf(m.group(2).toUpperCase())))
+                .collect(toList());
     }
 
     private Path getDataFilePath(String fileName) throws URISyntaxException {
@@ -115,7 +115,7 @@ public final class Satin {
         return Paths.get(resource.toURI());
     }
 
-    private void process(final List<Integer> inputPowers, final Laser laser) throws IOException {
+    private void process(final List<Integer> inputPowers, final Laser laser) {
         final Path path = PATH.resolve(laser.getOutputFile());
         try (BufferedWriter writer = Files.newBufferedWriter(path, defaultCharset(), CREATE, WRITE, TRUNCATE_EXISTING);
              final Formatter formatter = new Formatter(writer)) {
@@ -131,6 +131,8 @@ public final class Satin {
                     )));
 
             formatter.format("\nEnd date: %s\n", Calendar.getInstance().getTime());
+        } catch (final IOException e) {
+            throw new IllegalStateException(e);
         }
     }
 
