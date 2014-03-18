@@ -5,11 +5,11 @@ public final class Laser {
     public enum CO2 {MD, PI}
 
     private final String outputFile;
-    private final float smallSignalGain;
+    private final double smallSignalGain;
     private final int dischargePressure;
     private final CO2 carbonDioxide;
 
-    public Laser(final String outputFile, final float smallSignalGain, final int dischargePressure, final CO2 carbonDioxide) {
+    public Laser(final String outputFile, final double smallSignalGain, final int dischargePressure, final CO2 carbonDioxide) {
         this.outputFile = outputFile;
         this.smallSignalGain = smallSignalGain;
         this.dischargePressure = dischargePressure;
@@ -20,7 +20,7 @@ public final class Laser {
         return outputFile;
     }
 
-    public float getSmallSignalGain() {
+    public double getSmallSignalGain() {
         return smallSignalGain;
     }
 
