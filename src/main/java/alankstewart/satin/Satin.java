@@ -12,7 +12,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Formatter;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -38,6 +37,7 @@ import static java.nio.file.Files.lines;
 import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 import static java.nio.file.StandardOpenOption.WRITE;
+import static java.time.LocalDateTime.now;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
@@ -120,9 +120,10 @@ public final class Satin {
         try (BufferedWriter writer = Files.newBufferedWriter(path, defaultCharset(), CREATE, WRITE, TRUNCATE_EXISTING);
              final Formatter formatter = new Formatter(writer)) {
             formatter
-                    .format("Start date: %s\n\nGaussian Beam\n\nPressure in Main Discharge = %skPa\nSmall-signal Gain = %s\nCO2 via %s\n\nPin\t\tPout\t\tSat. Int.\tln(Pout/Pin)\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n", Calendar
-                            .getInstance().getTime(), laser.getDischargePressure(), laser.getSmallSignalGain(), laser
-                            .getCarbonDioxide().name());
+                    .format("Start date: %s\n\nGaussian Beam\n\nPressure in Main Discharge = %skPa\nSmall-signal Gain = %s\nCO2 via %s\n\nPin\t\tPout\t\tSat. Int.\tln(Pout/Pin)\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n",
+                            now(), laser.getDischargePressure(), laser.getSmallSignalGain(), laser
+                                    .getCarbonDioxide().name()
+                    );
 
             inputPowers.forEach(inputPower -> gaussianCalculation(inputPower, laser.getSmallSignalGain()).forEach
                     (gaussian -> formatter.format("%s\t\t%s\t\t%s\t\t%s\t\t%s\n", gaussian.getInputPower(),
@@ -130,7 +131,7 @@ public final class Satin {
                             gaussian.getLogOutputPowerDividedByInputPower(), gaussian.getOutputPowerMinusInputPower()
                     )));
 
-            formatter.format("\nEnd date: %s\n", Calendar.getInstance().getTime());
+            formatter.format("\nEnd date: %s\n", now());
         } catch (final IOException e) {
             throw new IllegalStateException(e);
         }
