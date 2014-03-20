@@ -1,5 +1,8 @@
 package alankstewart.satin;
 
+import static java.lang.Double.parseDouble;
+import static java.lang.Integer.parseInt;
+
 public final class Laser {
 
     public enum CO2 {MD, PI}
@@ -14,6 +17,10 @@ public final class Laser {
         this.smallSignalGain = smallSignalGain;
         this.dischargePressure = dischargePressure;
         this.carbonDioxide = carbonDioxide;
+    }
+
+    public Laser(final String outputFile, final String smallSignalGain, final String dischargePressure, final String carbonDioxide) {
+        this(outputFile, parseDouble(smallSignalGain), parseInt(dischargePressure), CO2.valueOf(carbonDioxide.toUpperCase()));
     }
 
     public String getOutputFile() {

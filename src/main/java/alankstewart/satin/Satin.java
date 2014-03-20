@@ -22,9 +22,6 @@ import java.util.concurrent.Future;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static alankstewart.satin.Laser.CO2;
-import static java.lang.Double.parseDouble;
-import static java.lang.Integer.parseInt;
 import static java.lang.Math.PI;
 import static java.lang.Math.exp;
 import static java.lang.Math.pow;
@@ -55,7 +52,7 @@ public final class Satin {
     private static final double EXPR = 2 * PI * DR;
     private static final int INCR = 8001;
     private static final Path PATH = Paths.get(System.getProperty("user.dir"));
-    private static final Pattern LASER = Pattern.compile("((md|pi)[a-z]{2}\\.out)\\s+([0-9]{2}\\.[0-9])\\s+([0-9]+)\\s+(?i:\\2)");
+    private static final Pattern PATTERN = Pattern.compile("((md|pi)[a-z]{2}\\.out)\\s+([0-9]{2}\\.[0-9])\\s+([0-9]+)\\s+(?i:\\2)");
 
     public static void main(final String[] args) {
         final long start = nanoTime();
@@ -103,9 +100,9 @@ public final class Satin {
 
     private List<Laser> getLaserData() throws IOException, URISyntaxException {
         return lines(getDataFilePath("laser.dat"))
-                .map(LASER::matcher)
+                .map(PATTERN::matcher)
                 .filter(Matcher::matches)
-                .map(m -> new Laser(m.group(1), parseDouble(m.group(3)), parseInt(m.group(4)), CO2.valueOf(m.group(2).toUpperCase())))
+                .map(m -> new Laser(m.group(1), m.group(3), m.group(4), m.group(2)))
                 .collect(toList());
     }
 
