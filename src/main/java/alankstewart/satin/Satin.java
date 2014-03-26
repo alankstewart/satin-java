@@ -149,7 +149,7 @@ public final class Satin {
         for (int saturationIntensity = 10000; saturationIntensity <= 25000; saturationIntensity += 1000) {
             double outputPower = 0.0;
             final double expr3 = saturationIntensity * expr2;
-            for (float r = 0; r <= 0.5; r += DR) {
+            for (double r = 0; r <= 0.5; r += DR) {
                 double outputIntensity = inputIntensity * exp(-2 * pow(r, 2) / pow(RAD, 2));
                 for (int j = 0; j < INCR; j++) {
                     outputIntensity *= (1 + expr3 / (saturationIntensity + outputIntensity) - expr1[j]);
