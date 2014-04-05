@@ -5,7 +5,7 @@ import static java.lang.Integer.parseInt;
 
 public final class Laser {
 
-    public enum CO2 {MD, PI}
+    enum CO2 {MD, PI}
 
     private final String outputFile;
     private final double smallSignalGain;
