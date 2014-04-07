@@ -131,14 +131,13 @@ public final class Satin {
     }
 
     private String getHeader() {
-        return new StringBuilder()
-                .append("Start date: %s\n\n" )
-                .append("Gaussian Beam\n\n" )
-                .append("Pressure in Main Discharge = %skPa\n" )
-                .append("Small-signal Gain = %s\n" )
-                .append("CO2 via %s\n\n" )
-                .append("Pin\t\tPout\t\tSat. Int\tln(Pout/Pin\tPout-Pin\n" )
-                .append("(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n" )
+        return new StringBuilder("Start date: %s\n\n")
+                .append("Gaussian Beam\n\n")
+                .append("Pressure in Main Discharge = %skPa\n")
+                .append("Small-signal Gain = %s\n")
+                .append("CO2 via %s\n\n")
+                .append("Pin\t\tPout\t\tSat. Int\tln(Pout/Pin\tPout-Pin\n")
+                .append("(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n")
                 .toString();
     }
 
