@@ -19,6 +19,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -26,7 +27,6 @@ import static java.lang.Math.PI;
 import static java.lang.Math.exp;
 import static java.lang.Math.pow;
 import static java.lang.System.nanoTime;
-import static java.lang.System.out;
 import static java.math.BigDecimal.ROUND_HALF_UP;
 import static java.math.BigDecimal.valueOf;
 import static java.nio.charset.Charset.defaultCharset;
@@ -41,6 +41,8 @@ import static java.util.stream.Collectors.toList;
 
 public final class Satin {
 
+    private static final Logger LOGGER = Logger.getLogger(Satin.class.getName());
+    private static final Path PATH = Paths.get(System.getProperty("user.dir"));
     private static final double RAD = 0.18;
     private static final double W1 = 0.3;
     private static final double DR = 0.002;
@@ -51,8 +53,6 @@ public final class Satin {
     private static final double Z12 = Z1 * Z1;
     private static final double EXPR = 2 * PI * DR;
     private static final int INCR = 8001;
-    private static final Path PATH = Paths.get(System.getProperty("user.dir"));
-    private static final Pattern PATTERN = Pattern.compile("((md|pi)[a-z]{2}\\.out)\\s+([0-9]{2}\\.[0-9])\\s+([0-9]+)\\s+(?i:\\2)");
 
     public static void main(final String[] args) {
         final long start = nanoTime();
@@ -64,9 +64,9 @@ public final class Satin {
                 satin.calculate();
             }
         } catch (final Exception e) {
-            out.format("Failed to complete: %s\n", e.getMessage());
+            LOGGER.severe("Failed to complete: " + e.getMessage());
         } finally {
-            out.format("The time was %s seconds\n", valueOf(nanoTime() - start).divide(valueOf(1E9), 3, ROUND_HALF_UP));
+            LOGGER.info("The time was " + valueOf(nanoTime() - start).divide(valueOf(1E9), 3, ROUND_HALF_UP) + " seconds");
         }
     }
 
@@ -99,8 +99,9 @@ public final class Satin {
     }
 
     private List<Laser> getLaserData() throws IOException, URISyntaxException {
+        final Pattern pattern = Pattern.compile("((md|pi)[a-z]{2}\\.out)\\s+([0-9]{2}\\.[0-9])\\s+([0-9]+)\\s+(?i:\\2)");
         return lines(getDataFilePath("laser.dat"))
-                .map(PATTERN::matcher)
+                .map(pattern::matcher)
                 .filter(Matcher::matches)
                 .map(m -> new Laser(m.group(1), m.group(3), m.group(4), m.group(2)))
                 .collect(toList());
@@ -116,29 +117,25 @@ public final class Satin {
         final Path path = PATH.resolve(laser.getOutputFile());
         try (BufferedWriter writer = Files.newBufferedWriter(path, defaultCharset(), CREATE, WRITE, TRUNCATE_EXISTING);
              final Formatter formatter = new Formatter(writer)) {
-            formatter.format(getHeader(), now(), laser.getDischargePressure(), laser.getSmallSignalGain(),
+            formatter.format("Start date: %s\n\nGaussian Beam\n\nPressure in Main Discharge = %skPa\nSmall-signal Gain = %s\nCO2 via %s\n\nPin\t\tPout\t\tSat. Int\tln(Pout/Pin\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n",
+                    now(),
+                    laser.getDischargePressure(),
+                    laser.getSmallSignalGain(),
                     laser.getCarbonDioxide().name());
 
             inputPowers.forEach(inputPower -> gaussianCalculation(inputPower, laser.getSmallSignalGain()).forEach
-                    (gaussian -> formatter.format("%s\t\t%s\t\t%s\t\t%s\t\t%s\n", gaussian.getInputPower(),
-                            gaussian.getOutputPower(), gaussian.getSaturationIntensity(),
-                            gaussian.getLogOutputPowerDividedByInputPower(), gaussian.getOutputPowerMinusInputPower())));
+                    (gaussian -> formatter.format("%s\t\t%s\t\t%s\t\t%s\t\t%s\n",
+                            gaussian.getInputPower(),
+                            gaussian.getOutputPower(),
+                            gaussian.getSaturationIntensity(),
+                            gaussian.getLogOutputPowerDividedByInputPower(),
+                            gaussian.getOutputPowerMinusInputPower())));
 
             formatter.format("\nEnd date: %s\n", now());
+            formatter.flush();
         } catch (final IOException e) {
             throw new IllegalStateException(e);
         }
-    }
-
-    private String getHeader() {
-        return new StringBuilder("Start date: %s\n\n")
-                .append("Gaussian Beam\n\n")
-                .append("Pressure in Main Discharge = %skPa\n")
-                .append("Small-signal Gain = %s\n")
-                .append("CO2 via %s\n\n")
-                .append("Pin\t\tPout\t\tSat. Int\tln(Pout/Pin\tPout-Pin\n")
-                .append("(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n")
-                .toString();
     }
 
     private List<Gaussian> gaussianCalculation(final int inputPower, final double smallSignalGain) {
