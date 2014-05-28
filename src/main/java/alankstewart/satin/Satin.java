@@ -99,9 +99,9 @@ public final class Satin {
     }
 
     private List<Laser> getLaserData() throws IOException, URISyntaxException {
-        final Pattern pattern = Pattern.compile("((md|pi)[a-z]{2}\\.out)\\s+([0-9]{2}\\.[0-9])\\s+([0-9]+)\\s+(?i:\\2)");
+        final Pattern p = Pattern.compile("((md|pi)[a-z]{2}\\.out)\\s+([0-9]{2}\\.[0-9])\\s+([0-9]+)\\s+(?i:\\2)");
         return lines(getDataFilePath("laser.dat"))
-                .map(pattern::matcher)
+                .map(p::matcher)
                 .filter(Matcher::matches)
                 .map(m -> new Laser(m.group(1), m.group(3), m.group(4), m.group(2)))
                 .collect(toList());
