@@ -123,8 +123,8 @@ public final class Satin {
                     laser.getSmallSignalGain(),
                     laser.getCarbonDioxide().name());
 
-            inputPowers.forEach(inputPower -> gaussianCalculation(inputPower, laser.getSmallSignalGain()).forEach
-                    (gaussian -> formatter.format("%s\t\t%s\t\t%s\t\t%s\t\t%s\n",
+            inputPowers.forEach(inputPower -> gaussianCalculation(inputPower, laser.getSmallSignalGain())
+                    .forEach(gaussian -> formatter.format("%s\t\t%s\t\t%s\t\t%s\t\t%s\n",
                             gaussian.getInputPower(),
                             gaussian.getOutputPower(),
                             gaussian.getSaturationIntensity(),
