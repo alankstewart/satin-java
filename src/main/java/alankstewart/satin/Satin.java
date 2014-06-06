@@ -11,6 +11,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Formatter;
 import java.util.List;
@@ -22,6 +23,7 @@ import java.util.concurrent.Future;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import static java.lang.Math.PI;
 import static java.lang.Math.exp;
@@ -30,7 +32,6 @@ import static java.lang.System.nanoTime;
 import static java.math.BigDecimal.ROUND_HALF_UP;
 import static java.math.BigDecimal.valueOf;
 import static java.nio.charset.Charset.defaultCharset;
-import static java.nio.file.Files.lines;
 import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 import static java.nio.file.StandardOpenOption.WRITE;
@@ -72,10 +73,12 @@ public final class Satin {
 
     private void calculateConcurrently() throws IOException, URISyntaxException {
         final List<Integer> inputPowers = getInputPowers();
-        final List<Callable<Void>> tasks = getLaserData().parallelStream().map(laser -> (Callable<Void>) () -> {
-            process(inputPowers, laser);
-            return null;
-        }).collect(toList());
+        final List<Callable<Void>> tasks = getLaserData()
+                .parallelStream()
+                .map(laser -> (Callable<Void>) () -> {
+                    process(inputPowers, laser);
+                    return null;
+                }).collect(toList());
 
         final ExecutorService executorService = Executors.newCachedThreadPool();
         try {
@@ -95,16 +98,20 @@ public final class Satin {
     }
 
     private List<Integer> getInputPowers() throws IOException, URISyntaxException {
-        return lines(getDataFilePath("pin.dat")).map(Integer::parseInt).collect(toList());
+        return readDataFileC("pin.dat").map(Integer::parseInt).collect(toList());
     }
 
     private List<Laser> getLaserData() throws IOException, URISyntaxException {
         final Pattern p = Pattern.compile("((md|pi)[a-z]{2}\\.out)\\s+([0-9]{2}\\.[0-9])\\s+([0-9]+)\\s+(?i:\\2)");
-        return lines(getDataFilePath("laser.dat"))
+        return readDataFileC("laser.dat")
                 .map(p::matcher)
                 .filter(Matcher::matches)
                 .map(m -> new Laser(m.group(1), m.group(3), m.group(4), m.group(2)))
                 .collect(toList());
+    }
+
+    private Stream<String> readDataFileC(String fileName) throws IOException, URISyntaxException {
+        return Files.lines(getDataFilePath(fileName));
     }
 
     private Path getDataFilePath(String fileName) throws URISyntaxException {
@@ -115,10 +122,11 @@ public final class Satin {
 
     private void process(final List<Integer> inputPowers, final Laser laser) {
         final Path path = PATH.resolve(laser.getOutputFile());
+        final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("d MMM yyyy HH:mm:ss.SSS");
         try (BufferedWriter writer = Files.newBufferedWriter(path, defaultCharset(), CREATE, WRITE, TRUNCATE_EXISTING);
              final Formatter formatter = new Formatter(writer)) {
             formatter.format("Start date: %s\n\nGaussian Beam\n\nPressure in Main Discharge = %skPa\nSmall-signal Gain = %s\nCO2 via %s\n\nPin\t\tPout\t\tSat. Int\tln(Pout/Pin\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n",
-                    now(),
+                    now().format(dateTimeFormatter),
                     laser.getDischargePressure(),
                     laser.getSmallSignalGain(),
                     laser.getCarbonDioxide().name());
@@ -131,8 +139,7 @@ public final class Satin {
                             gaussian.getLogOutputPowerDividedByInputPower(),
                             gaussian.getOutputPowerMinusInputPower())));
 
-            formatter.format("\nEnd date: %s\n", now());
-            formatter.flush();
+            formatter.format("\nEnd date: %s\n", now().format(dateTimeFormatter));
         } catch (final IOException e) {
             throw new IllegalStateException(e);
         }
