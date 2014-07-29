@@ -12,7 +12,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.Formatter;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -20,7 +19,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.function.DoubleSupplier;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -38,7 +36,6 @@ import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 import static java.nio.file.StandardOpenOption.WRITE;
 import static java.time.LocalDateTime.now;
-import static java.util.Collections.unmodifiableList;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 
@@ -156,22 +153,18 @@ public final class Satin {
         final double inputIntensity = 2 * inputPower / AREA;
         final double expr2 = (smallSignalGain / 32E3) * DZ;
 
-        final List<Gaussian> gaussians = new ArrayList<>();
-        for (int i = 10000; i <= 25000; i += 1000) {
-            final int saturationIntensity = i;
-            gaussians.add(new Gaussian(inputPower, ((DoubleSupplier) () -> {
-                double outputPower = 0.0;
-                final double expr3 = saturationIntensity * expr2;
-                for (double r = 0; r <= 0.5; r += DR) {
-                    double outputIntensity = inputIntensity * exp(-2 * pow(r, 2) / pow(RAD, 2));
-                    for (int j = 0; j < INCR; j++) {
-                        outputIntensity *= (1 + expr3 / (saturationIntensity + outputIntensity) - expr1[j]);
-                    }
-                    outputPower += (outputIntensity * EXPR * r);
+        return IntStream.rangeClosed(10, 25).mapToObj(i -> {
+            int saturationIntensity = i * 1000;
+            double outputPower = 0.0;
+            final double expr3 = saturationIntensity * expr2;
+            for (double r = 0; r <= 0.5; r += DR) {
+                double outputIntensity = inputIntensity * exp(-2 * pow(r, 2) / pow(RAD, 2));
+                for (int j = 0; j < INCR; j++) {
+                    outputIntensity *= (1 + expr3 / (saturationIntensity + outputIntensity) - expr1[j]);
                 }
-                return outputPower;
-            }).getAsDouble(), saturationIntensity));
-        }
-        return unmodifiableList(gaussians);
+                outputPower += (outputIntensity * EXPR * r);
+            }
+            return new Gaussian(inputPower, outputPower, saturationIntensity);
+        }).collect(toList());
     }
 }
