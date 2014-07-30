@@ -154,9 +154,9 @@ public final class Satin {
         final double expr2 = (smallSignalGain / 32E3) * DZ;
 
         return IntStream.rangeClosed(10, 25).mapToObj(i -> {
-            int saturationIntensity = i * 1000;
-            double outputPower = 0.0;
+            final int saturationIntensity = i * 1000;
             final double expr3 = saturationIntensity * expr2;
+            double outputPower = 0.0;
             for (double r = 0; r <= 0.5; r += DR) {
                 double outputIntensity = inputIntensity * exp(-2 * pow(r, 2) / pow(RAD, 2));
                 for (int j = 0; j < INCR; j++) {
