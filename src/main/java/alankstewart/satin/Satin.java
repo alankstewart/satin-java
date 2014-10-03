@@ -43,6 +43,7 @@ public final class Satin {
 
     private static final Logger LOGGER = Logger.getLogger(Satin.class.getName());
     private static final Path PATH = Paths.get(System.getProperty("user.dir"));
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("d MMM yyyy HH:mm:ss.SSS");
     private static final double RAD = 0.18;
     private static final double RAD2 = pow(RAD, 2);
     private static final double W1 = 0.3;
@@ -120,11 +121,10 @@ public final class Satin {
 
     private void process(final List<Integer> inputPowers, final Laser laser) {
         final Path path = PATH.resolve(laser.getOutputFile());
-        final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("d MMM yyyy HH:mm:ss.SSS");
         try (BufferedWriter writer = Files.newBufferedWriter(path, defaultCharset(), CREATE, WRITE, TRUNCATE_EXISTING);
              final Formatter formatter = new Formatter(writer)) {
             formatter.format("Start date: %s\n\nGaussian Beam\n\nPressure in Main Discharge = %skPa\nSmall-signal Gain = %s\nCO2 via %s\n\nPin\t\tPout\t\tSat. Int\tln(Pout/Pin\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n",
-                    now().format(dateTimeFormatter),
+                    now().format(DATE_TIME_FORMATTER),
                     laser.getDischargePressure(),
                     laser.getSmallSignalGain(),
                     laser.getCarbonDioxide().name());
@@ -137,7 +137,7 @@ public final class Satin {
                             gaussian.getLogOutputPowerDividedByInputPower(),
                             gaussian.getOutputPowerMinusInputPower())));
 
-            formatter.format("\nEnd date: %s\n", now().format(dateTimeFormatter));
+            formatter.format("\nEnd date: %s\n", now().format(DATE_TIME_FORMATTER));
         } catch (final IOException e) {
             throw new IllegalStateException(e);
         }
