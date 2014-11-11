@@ -151,7 +151,7 @@ public final class Satin {
         return IntStream.rangeClosed(10, 25).mapToObj(i -> {
             final int saturationIntensity = i * 1000;
             final double expr3 = saturationIntensity * expr2;
-            double outputPower = IntStream.rangeClosed(0, 250).mapToDouble(r -> {
+            final double outputPower = IntStream.rangeClosed(0, 250).mapToDouble(r -> {
                 final double radius = (double) r / 500;
                 double outputIntensity = inputIntensity * exp(-2 * pow(radius, 2) / RAD2);
                 for (int j = 0; j < INCR; j++) {
