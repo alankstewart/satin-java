@@ -95,14 +95,14 @@ public final class Satin {
     }
 
     private List<Integer> getInputPowers() throws IOException, URISyntaxException {
-        try (Stream<String> lines = Files.lines(getDataFilePath("pin.dat"))) {
+        try (final Stream<String> lines = Files.lines(getDataFilePath("pin.dat"))) {
             return lines.map(Integer::parseInt).collect(toList());
         }
     }
 
     private List<Laser> getLaserData() throws IOException, URISyntaxException {
         final Pattern p = Pattern.compile("((md|pi)[a-z]{2}\\.out)\\s+([0-9]{2}\\.[0-9])\\s+([0-9]+)\\s+(?i:\\2)");
-        try (Stream<String> lines = Files.lines(getDataFilePath("laser.dat"))) {
+        try (final Stream<String> lines = Files.lines(getDataFilePath("laser.dat"))) {
             return lines.map(p::matcher)
                     .filter(Matcher::matches)
                     .map(m -> new Laser(m.group(1), m.group(3), m.group(4), m.group(2)))
@@ -151,14 +151,14 @@ public final class Satin {
         return IntStream.rangeClosed(10, 25).mapToObj(i -> {
             final int saturationIntensity = i * 1000;
             final double expr3 = saturationIntensity * expr2;
-            double outputPower = 0.0;
-            for (double r = 0; r <= 0.5; r += DR) {
-                double outputIntensity = inputIntensity * exp(-2 * pow(r, 2) / RAD2);
+            double outputPower = IntStream.rangeClosed(0, 250).mapToDouble(r -> {
+                final double radius = (double) r / 500;
+                double outputIntensity = inputIntensity * exp(-2 * pow(radius, 2) / RAD2);
                 for (int j = 0; j < INCR; j++) {
                     outputIntensity *= (1 + expr3 / (saturationIntensity + outputIntensity) - expr1[j]);
                 }
-                outputPower += (outputIntensity * EXPR * r);
-            }
+                return outputIntensity * EXPR * radius;
+            }).sum();
             return new Gaussian(inputPower, outputPower, saturationIntensity);
         }).collect(toList());
     }
