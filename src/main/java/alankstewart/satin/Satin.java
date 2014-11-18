@@ -78,7 +78,10 @@ public final class Satin {
                     process(inputPowers, laser);
                     return null;
                 }).collect(toList());
+        invokeAllTasks(tasks);
+    }
 
+    private void invokeAllTasks(List<Callable<Void>> tasks) throws InterruptedException, ExecutionException {
         final ExecutorService executorService = Executors.newCachedThreadPool();
         try {
             for (final Future<Void> future : executorService.invokeAll(tasks)) {
@@ -135,7 +138,7 @@ public final class Satin {
 
             formatter.format("\nEnd date: %s\n", now().format(DATE_TIME_FORMATTER));
         } catch (final IOException e) {
-            throw new IllegalStateException(e);
+            throw new RuntimeException(e);
         }
     }
 
