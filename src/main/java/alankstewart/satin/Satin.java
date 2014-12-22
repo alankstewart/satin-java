@@ -81,7 +81,7 @@ public final class Satin {
         invokeAllTasks(tasks);
     }
 
-    private void invokeAllTasks(List<Callable<Void>> tasks) throws InterruptedException, ExecutionException {
+    private void invokeAllTasks(final List<Callable<Void>> tasks) throws InterruptedException, ExecutionException {
         final ExecutorService executorService = Executors.newCachedThreadPool();
         try {
             for (final Future<Void> future : executorService.invokeAll(tasks)) {
@@ -113,7 +113,7 @@ public final class Satin {
         }
     }
 
-    private Path getDataFilePath(String fileName) throws URISyntaxException {
+    private Path getDataFilePath(final String fileName) throws URISyntaxException {
         return Paths.get(getClass().getClassLoader().getResource(fileName).toURI());
     }
 
