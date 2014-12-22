@@ -58,16 +58,21 @@ public final class Satin {
         final long start = nanoTime();
         final Satin satin = new Satin();
         try {
-            if (args.length > 0 && args[0].equals("-concurrent")) {
-                satin.calculateConcurrently();
-            } else {
+            if (args.length > 0 && args[0].equals("-single")) {
                 satin.calculate();
+            } else {
+                satin.calculateConcurrently();
             }
         } catch (final Exception e) {
             LOGGER.severe("Failed to complete: " + e.getMessage());
         } finally {
             LOGGER.info("The time was " + valueOf(nanoTime() - start).divide(valueOf(1E9), 3, ROUND_HALF_UP) + " seconds");
         }
+    }
+
+    private void calculate() throws IOException, URISyntaxException {
+        final List<Integer> inputPowers = getInputPowers();
+        getLaserData().forEach(laser -> process(inputPowers, laser));
     }
 
     private void calculateConcurrently() throws IOException, URISyntaxException, InterruptedException, ExecutionException {
@@ -90,11 +95,6 @@ public final class Satin {
         } finally {
             executorService.shutdown();
         }
-    }
-
-    private void calculate() throws IOException, URISyntaxException {
-        final List<Integer> inputPowers = getInputPowers();
-        getLaserData().forEach(laser -> process(inputPowers, laser));
     }
 
     private List<Integer> getInputPowers() throws IOException, URISyntaxException {
