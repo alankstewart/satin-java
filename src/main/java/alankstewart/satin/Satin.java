@@ -149,7 +149,7 @@ public final class Satin {
         }).toArray();
 
         final double inputIntensity = 2 * inputPower / AREA;
-        final double expr2 = (smallSignalGain / 32E3) * DZ;
+        final double expr2 = smallSignalGain / 32E3 * DZ;
 
         return IntStream.rangeClosed(10, 25).mapToObj(i -> {
             final int saturationIntensity = i * 1000;
@@ -158,7 +158,7 @@ public final class Satin {
                 final double radius = (double) r / 500;
                 double outputIntensity = inputIntensity * exp(-2 * pow(radius, 2) / RAD2);
                 for (int j = 0; j < INCR; j++) {
-                    outputIntensity *= (1 + expr3 / (saturationIntensity + outputIntensity) - expr1[j]);
+                    outputIntensity *= 1 + expr3 / (saturationIntensity + outputIntensity) - expr1[j];
                 }
                 return outputIntensity * EXPR * radius;
             }).sum();
