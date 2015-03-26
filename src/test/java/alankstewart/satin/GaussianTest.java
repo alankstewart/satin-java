@@ -6,8 +6,7 @@ import org.junit.Test;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 public class GaussianTest {
 
@@ -20,26 +19,26 @@ public class GaussianTest {
 
     @Test
     public void shoulReturnInputPowerAsBigInteger() {
-        assertThat(gaussian.getInputPower(), is(new BigInteger("150")));
+        assertTrue(gaussian.getInputPower().compareTo(new BigInteger("150")) == 0);
     }
 
     @Test
     public void shouldReturnOutputPowerAsBigDecimal() {
-        assertThat(gaussian.getOutputPower(), is(new BigDecimal("179.139")));
+        assertTrue(gaussian.getOutputPower().compareTo(new BigDecimal("179.139")) == 0);
     }
 
     @Test
     public void shouldReturnSaturationIntensityAsBigInteger() {
-        assertThat(gaussian.getSaturationIntensity(), is(new BigInteger("25000")));
+        assertTrue(gaussian.getSaturationIntensity().compareTo(new BigInteger("25000")) == 0);
     }
 
     @Test
     public void shouldReturnLogOutputPowerDividedByInputPowerAsBigDecimal() {
-        assertThat(gaussian.getLogOutputPowerDividedByInputPower(), is(new BigDecimal("0.178")));
+        assertTrue(gaussian.getLogOutputPowerDividedByInputPower().compareTo(new BigDecimal("0.178")) == 0);
     }
 
     @Test
     public void shouldReturnOutputPowerMinusInputPowerAsBigDecimal() {
-        assertThat(gaussian.getOutputPowerMinusInputPower(), is(new BigDecimal("29.139")));
+        assertTrue(gaussian.getOutputPowerMinusInputPower().compareTo(new BigDecimal("29.139")) == 0);
     }
 }

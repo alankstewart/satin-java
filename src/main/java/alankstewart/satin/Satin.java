@@ -142,7 +142,7 @@ public final class Satin {
         }
     }
 
-    private Stream<Gaussian> gaussianCalculation(final int inputPower, final double smallSignalGain) {
+    List<Gaussian> gaussianCalculation(final int inputPower, final double smallSignalGain) {
         final double[] expr1 = IntStream.range(0, INCR).mapToDouble(i -> {
             final double zInc = ((double) i - INCR / 2) / 25;
             return 2 * zInc * DZ / (Z12 + pow(zInc, 2));
@@ -163,6 +163,6 @@ public final class Satin {
                 return outputIntensity * EXPR * radius;
             }).sum();
             return new Gaussian(inputPower, outputPower, saturationIntensity);
-        });
+        }).collect(toList());
     }
 }
