@@ -24,6 +24,8 @@ import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import static java.lang.Double.parseDouble;
+import static java.lang.Integer.parseInt;
 import static java.lang.Math.PI;
 import static java.lang.Math.exp;
 import static java.lang.Math.pow;
@@ -108,7 +110,8 @@ public final class Satin {
         try (final Stream<String> lines = Files.lines(getDataFilePath("laser.dat"))) {
             return lines.map(p::matcher)
                     .filter(Matcher::matches)
-                    .map(m -> new Laser(m.group(1), m.group(3), m.group(4), m.group(2)))
+                    .map(m -> new Laser(m.group(1), parseDouble(m.group(3)), parseInt(m.group(4)),
+                            Laser.CO2.valueOf(m.group(2).toUpperCase())))
                     .collect(toList());
         }
     }
