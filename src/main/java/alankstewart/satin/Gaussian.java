@@ -1,7 +1,6 @@
 package alankstewart.satin;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
 
 import static java.lang.Math.log;
 import static java.math.BigDecimal.ROUND_HALF_UP;
@@ -23,16 +22,16 @@ public final class Gaussian {
         outputPowerMinusInputPower = valueOf(this.outputPower).subtract(valueOf(this.inputPower)).setScale(3, ROUND_HALF_UP);
     }
 
-    public BigInteger getInputPower() {
-        return BigInteger.valueOf(inputPower);
+    public int getInputPower() {
+        return inputPower;
     }
 
     public BigDecimal getOutputPower() {
         return valueOf(outputPower).setScale(3, ROUND_HALF_UP);
     }
 
-    public BigInteger getSaturationIntensity() {
-        return BigInteger.valueOf(saturationIntensity);
+    public int getSaturationIntensity() {
+        return saturationIntensity;
     }
 
     public BigDecimal getLogOutputPowerDividedByInputPower() {

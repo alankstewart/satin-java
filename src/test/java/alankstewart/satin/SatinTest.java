@@ -3,7 +3,6 @@ package alankstewart.satin;
 import org.junit.Test;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.util.List;
 
 import static org.junit.Assert.assertTrue;
@@ -106,7 +105,7 @@ public class SatinTest {
 
     private Gaussian getGaussian(List<Gaussian> gaussians, int saturationIntensity) {
         return gaussians.stream()
-                .filter(g -> g.getSaturationIntensity().compareTo(BigInteger.valueOf(saturationIntensity)) == 0)
+                .filter(g -> g.getSaturationIntensity() == saturationIntensity)
                 .findAny()
                 .get();
     }

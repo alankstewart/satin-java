@@ -1,35 +1,18 @@
 package alankstewart.satin;
 
-import org.junit.Before;
 import org.junit.Test;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
 
 import static org.junit.Assert.assertTrue;
 
 public class GaussianTest {
 
-    private Gaussian gaussian;
-
-    @Before
-    public void setUp() {
-        gaussian = new Gaussian(150, 179.139, 25000);
-    }
-
-    @Test
-    public void shoulReturnInputPowerAsBigInteger() {
-        assertTrue(gaussian.getInputPower().compareTo(new BigInteger("150")) == 0);
-    }
+    private final Gaussian gaussian = new Gaussian(150, 179.13933259214042, 25000);
 
     @Test
     public void shouldReturnOutputPowerAsBigDecimal() {
         assertTrue(gaussian.getOutputPower().compareTo(new BigDecimal("179.139")) == 0);
-    }
-
-    @Test
-    public void shouldReturnSaturationIntensityAsBigInteger() {
-        assertTrue(gaussian.getSaturationIntensity().compareTo(new BigInteger("25000")) == 0);
     }
 
     @Test
