@@ -146,19 +146,14 @@ public final class Satin {
     }
 
     List<Gaussian> gaussianCalculation(final int inputPower, final double smallSignalGain) {
-        final double[] expr1 = IntStream.range(0, INCR).mapToDouble(i -> {
-            final double zInc = ((double) i - INCR / 2) / 25;
-            return 2 * zInc * DZ / (Z12 + pow(zInc, 2));
-        }).toArray();
-
-        final double inputIntensity = 2 * inputPower / AREA;
+        final double[] expr1 = IntStream.range(0, INCR).mapToDouble(i -> ((double) i - INCR / 2) / 25)
+                .map(zInc -> 2 * zInc * DZ / (Z12 + pow(zInc, 2))).toArray();
         final double expr2 = smallSignalGain / 32E3 * DZ;
+        final double inputIntensity = 2 * inputPower / AREA;
 
-        return IntStream.rangeClosed(10, 25).mapToObj(i -> {
-            final int saturationIntensity = i * 1000;
+        return IntStream.rangeClosed(10, 25).map(i -> i * 1000).mapToObj(saturationIntensity -> {
             final double expr3 = saturationIntensity * expr2;
-            final double outputPower = IntStream.rangeClosed(0, 250).mapToDouble(r -> {
-                final double radius = (double) r / 500;
+            final double outputPower = IntStream.rangeClosed(0, 250).mapToDouble(r -> (double) r / 500).map(radius -> {
                 double outputIntensity = inputIntensity * exp(-2 * pow(radius, 2) / RAD2);
                 for (int j = 0; j < INCR; j++) {
                     outputIntensity *= 1 + expr3 / (saturationIntensity + outputIntensity) - expr1[j];
