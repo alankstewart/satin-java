@@ -7,12 +7,14 @@ package alankstewart.satin;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.format.DateTimeFormatter;
 import java.util.Formatter;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -66,7 +68,7 @@ public final class Satin {
                 satin.calculateConcurrently();
             }
         } catch (final Exception e) {
-            LOGGER.severe("Failed to complete: " + e.getMessage());
+            LOGGER.severe(e.getMessage());
         } finally {
             LOGGER.info("The time was " + valueOf(nanoTime() - start).divide(valueOf(1E9), 3, ROUND_HALF_UP) + " seconds");
         }
@@ -114,7 +116,9 @@ public final class Satin {
     }
 
     private Path getDataFilePath(final String fileName) throws URISyntaxException {
-        return Paths.get(getClass().getClassLoader().getResource(fileName).toURI());
+        URL url = getClass().getClassLoader().getResource(fileName);
+        Objects.requireNonNull(url, "Failed to find file " + fileName);
+        return Paths.get(url.toURI());
     }
 
     private void process(final List<Integer> inputPowers, final Laser laser) {
