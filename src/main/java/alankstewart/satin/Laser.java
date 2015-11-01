@@ -2,7 +2,7 @@ package alankstewart.satin;
 
 public final class Laser {
 
-    enum CO2 {MD, PI}
+    public enum CO2 {MD, PI}
 
     private final String outputFile;
     private final double smallSignalGain;

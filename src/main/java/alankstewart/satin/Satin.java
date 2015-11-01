@@ -12,14 +12,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.Formatter;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -28,16 +25,12 @@ import java.util.stream.Stream;
 
 import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;
-import static java.lang.Math.PI;
-import static java.lang.Math.exp;
-import static java.lang.Math.pow;
+import static java.lang.Math.*;
 import static java.lang.System.nanoTime;
 import static java.math.BigDecimal.ROUND_HALF_UP;
 import static java.math.BigDecimal.valueOf;
 import static java.nio.charset.Charset.defaultCharset;
-import static java.nio.file.StandardOpenOption.CREATE;
-import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
-import static java.nio.file.StandardOpenOption.WRITE;
+import static java.nio.file.StandardOpenOption.*;
 import static java.time.LocalDateTime.now;
 import static java.util.stream.Collectors.toList;
 
@@ -75,13 +68,13 @@ public final class Satin {
     }
 
     private void calculate() throws IOException, URISyntaxException {
-        final List<Integer> inputPowers = getInputPowers();
-        getLaserData().forEach(laser -> process(inputPowers, laser));
+        final int[] inputPowers = getInputPowers();
+        Arrays.stream(getLaserData()).forEach(laser -> process(inputPowers, laser));
     }
 
     private void calculateConcurrently() throws IOException, URISyntaxException, InterruptedException, ExecutionException {
-        final List<Integer> inputPowers = getInputPowers();
-        invokeAllTasks(getLaserData().parallelStream().map(laser -> (Callable<Void>) () -> {
+        final int[] inputPowers = getInputPowers();
+        invokeAllTasks(Arrays.stream(getLaserData()).parallel().map(laser -> (Callable<Void>) () -> {
             process(inputPowers, laser);
             return null;
         }).collect(toList()));
@@ -98,20 +91,19 @@ public final class Satin {
         }
     }
 
-    private List<Integer> getInputPowers() throws IOException, URISyntaxException {
+    private int[] getInputPowers() throws IOException, URISyntaxException {
         try (final Stream<String> lines = Files.lines(getDataFilePath("pin.dat"))) {
-            return lines.map(Integer::parseInt).collect(toList());
+            return lines.mapToInt(Integer::parseInt).toArray();
         }
     }
 
-    private List<Laser> getLaserData() throws IOException, URISyntaxException {
+    private Laser[] getLaserData() throws IOException, URISyntaxException {
         final Pattern p = Pattern.compile("((md|pi)[a-z]{2}\\.out)\\s+([0-9]{2}\\.[0-9])\\s+([0-9]+)\\s+(?i:\\2)");
         try (final Stream<String> lines = Files.lines(getDataFilePath("laser.dat"))) {
             return lines.map(p::matcher)
                     .filter(Matcher::matches)
-                    .map(m -> new Laser(m.group(1), parseDouble(m.group(3)), parseInt(m.group(4)),
-                            Laser.CO2.valueOf(m.group(2).toUpperCase())))
-                    .collect(toList());
+                    .map(m -> new Laser(m.group(1), parseDouble(m.group(3)), parseInt(m.group(4)), Laser.CO2.valueOf(m.group(2).toUpperCase())))
+                    .toArray(Laser[]::new);
         }
     }
 
@@ -121,7 +113,7 @@ public final class Satin {
         return Paths.get(url.toURI());
     }
 
-    private void process(final List<Integer> inputPowers, final Laser laser) {
+    private void process(final int[] inputPowers, final Laser laser) {
         final Path path = PATH.resolve(laser.getOutputFile());
         final String header = "Start date: %s\n\nGaussian Beam\n\nPressure in Main Discharge = %skPa\nSmall-signal Gain = %s\nCO2 via %s\n\nPin\t\tPout\t\tSat. Int\tln(Pout/Pin\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n";
         try (BufferedWriter writer = Files.newBufferedWriter(path, defaultCharset(), CREATE, WRITE, TRUNCATE_EXISTING);
@@ -132,7 +124,7 @@ public final class Satin {
                     laser.getSmallSignalGain(),
                     laser.getCarbonDioxide().name());
 
-            inputPowers.forEach(inputPower -> gaussianCalculation(inputPower, laser.getSmallSignalGain())
+            Arrays.stream(inputPowers).forEach(inputPower -> gaussianCalculation(inputPower, laser.getSmallSignalGain())
                     .forEach(gaussian -> formatter.format("%d\t\t%s\t\t%d\t\t%s\t\t%s\n",
                             gaussian.getInputPower(),
                             gaussian.getOutputPower(),
