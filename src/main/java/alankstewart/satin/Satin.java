@@ -44,9 +44,9 @@ public final class Satin {
     private static final double W1 = 0.3;
     private static final double DR = 0.002;
     private static final double DZ = 0.04;
-    private static final double LAMDA = 0.0106;
+    private static final double LAMBDA = 0.0106;
     private static final double AREA = PI * RAD2;
-    private static final double Z1 = PI * pow(W1, 2) / LAMDA;
+    private static final double Z1 = PI * pow(W1, 2) / LAMBDA;
     private static final double Z12 = pow(Z1, 2);
     private static final double EXPR = 2 * PI * DR;
     private static final int INCR = 8001;
