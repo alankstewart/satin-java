@@ -16,8 +16,11 @@ import java.util.Arrays;
 import java.util.Formatter;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.*;
-import java.util.logging.Logger;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
@@ -25,20 +28,21 @@ import java.util.stream.Stream;
 
 import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;
-import static java.lang.Math.*;
+import static java.lang.Math.PI;
+import static java.lang.Math.exp;
+import static java.lang.Math.pow;
 import static java.lang.System.nanoTime;
 import static java.math.BigDecimal.ROUND_HALF_UP;
 import static java.math.BigDecimal.valueOf;
 import static java.nio.charset.Charset.defaultCharset;
-import static java.nio.file.StandardOpenOption.*;
+import static java.nio.file.StandardOpenOption.CREATE;
+import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
+import static java.nio.file.StandardOpenOption.WRITE;
 import static java.time.LocalDateTime.now;
 import static java.util.stream.Collectors.toList;
 
 public final class Satin {
 
-    private static final Logger LOGGER = Logger.getLogger(Satin.class.getName());
-    private static final Path PATH = Paths.get(System.getProperty("user.dir"));
-    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("d MMM yyyy HH:mm:ss.SSS");
     private static final double RAD = 0.18;
     private static final double RAD2 = pow(RAD, 2);
     private static final double W1 = 0.3;
@@ -61,9 +65,9 @@ public final class Satin {
                 satin.calculateConcurrently();
             }
         } catch (final Exception e) {
-            LOGGER.severe(e.getMessage());
+            System.err.println(e.getMessage());
         } finally {
-            LOGGER.info("The time was " + valueOf(nanoTime() - start).divide(valueOf(1E9), 3, ROUND_HALF_UP) + " seconds");
+            System.out.format("The time was %.3f seconds\n", valueOf(nanoTime() - start).divide(valueOf(1E9), 3, ROUND_HALF_UP));
         }
     }
 
@@ -114,12 +118,13 @@ public final class Satin {
     }
 
     private void process(final int[] inputPowers, final Laser laser) {
-        final Path path = PATH.resolve(laser.getOutputFile());
+        final Path path = Paths.get(System.getProperty("user.dir")).resolve(laser.getOutputFile());
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("d MMM yyyy HH:mm:ss.SSS");
         final String header = "Start date: %s\n\nGaussian Beam\n\nPressure in Main Discharge = %skPa\nSmall-signal Gain = %s\nCO2 via %s\n\nPin\t\tPout\t\tSat. Int\tln(Pout/Pin\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n";
         try (BufferedWriter writer = Files.newBufferedWriter(path, defaultCharset(), CREATE, WRITE, TRUNCATE_EXISTING);
              final Formatter formatter = new Formatter(writer)) {
             formatter.format(header,
-                    now().format(DATE_TIME_FORMATTER),
+                    now().format(dateTimeFormatter),
                     laser.getDischargePressure(),
                     laser.getSmallSignalGain(),
                     laser.getCarbonDioxide().name());
@@ -132,7 +137,7 @@ public final class Satin {
                             gaussian.getLogOutputPowerDividedByInputPower(),
                             gaussian.getOutputPowerMinusInputPower())));
 
-            formatter.format("\nEnd date: %s\n", now().format(DATE_TIME_FORMATTER));
+            formatter.format("\nEnd date: %s\n", now().format(dateTimeFormatter));
         } catch (final IOException e) {
             throw new RuntimeException(e);
         }
