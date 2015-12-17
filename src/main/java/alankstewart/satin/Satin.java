@@ -43,6 +43,8 @@ import static java.util.stream.Collectors.toList;
 
 public final class Satin {
 
+    private static final Path PATH = Paths.get(System.getProperty("user.dir"));
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("d MMM yyyy HH:mm:ss.SSS");
     private static final double RAD = 0.18;
     private static final double RAD2 = pow(RAD, 2);
     private static final double W1 = 0.3;
@@ -118,13 +120,12 @@ public final class Satin {
     }
 
     private void process(final int[] inputPowers, final Laser laser) {
-        final Path path = Paths.get(System.getProperty("user.dir")).resolve(laser.getOutputFile());
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("d MMM yyyy HH:mm:ss.SSS");
+        final Path path = PATH.resolve(laser.getOutputFile());
         final String header = "Start date: %s\n\nGaussian Beam\n\nPressure in Main Discharge = %skPa\nSmall-signal Gain = %s\nCO2 via %s\n\nPin\t\tPout\t\tSat. Int\tln(Pout/Pin\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n";
         try (BufferedWriter writer = Files.newBufferedWriter(path, defaultCharset(), CREATE, WRITE, TRUNCATE_EXISTING);
              final Formatter formatter = new Formatter(writer)) {
             formatter.format(header,
-                    now().format(dateTimeFormatter),
+                    now().format(DATE_TIME_FORMATTER),
                     laser.getDischargePressure(),
                     laser.getSmallSignalGain(),
                     laser.getCarbonDioxide().name());
@@ -137,15 +138,17 @@ public final class Satin {
                             gaussian.getLogOutputPowerDividedByInputPower(),
                             gaussian.getOutputPowerMinusInputPower())));
 
-            formatter.format("\nEnd date: %s\n", now().format(dateTimeFormatter));
+            formatter.format("\nEnd date: %s\n", now().format(DATE_TIME_FORMATTER));
         } catch (final IOException e) {
             throw new RuntimeException(e);
         }
     }
 
     List<Gaussian> gaussianCalculation(final int inputPower, final double smallSignalGain) {
-        final double[] expr1 = IntStream.range(0, INCR).mapToDouble(i -> ((double) i - INCR / 2) / 25)
-                .map(zInc -> 2 * zInc * DZ / (Z12 + pow(zInc, 2))).toArray();
+        final double[] expr1 = IntStream.range(0, INCR)
+                .mapToDouble(i -> ((double) i - INCR / 2) / 25)
+                .map(zInc -> 2 * zInc * DZ / (Z12 + pow(zInc, 2)))
+                .toArray();
         final double expr2 = smallSignalGain / 32E3 * DZ;
         final double inputIntensity = 2 * inputPower / AREA;
 
