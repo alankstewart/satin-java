@@ -149,7 +149,7 @@ public final class Satin {
                 .mapToDouble(i -> ((double) i - INCR / 2) / 25)
                 .map(zInc -> 2 * zInc * DZ / (Z12 + pow(zInc, 2)))
                 .toArray();
-        final double expr2 = smallSignalGain / 32E3 * DZ;
+        final double expr2 = smallSignalGain / 32000 * DZ;
         final double inputIntensity = 2 * inputPower / AREA;
 
         return IntStream.rangeClosed(10, 25).map(i -> i * 1000).mapToObj(saturationIntensity -> {
