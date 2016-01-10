@@ -1,15 +1,13 @@
 package alankstewart.satin;
 
-public final class Laser {
-
-    public enum CO2 {MD, PI}
+final class Laser {
 
     private final String outputFile;
     private final double smallSignalGain;
     private final int dischargePressure;
-    private final CO2 carbonDioxide;
+    private final String carbonDioxide;
 
-    public Laser(final String outputFile, final double smallSignalGain, final int dischargePressure, final CO2 carbonDioxide) {
+    public Laser(final String outputFile, final double smallSignalGain, final int dischargePressure, final String carbonDioxide) {
         this.outputFile = outputFile;
         this.smallSignalGain = smallSignalGain;
         this.dischargePressure = dischargePressure;
@@ -28,7 +26,7 @@ public final class Laser {
         return dischargePressure;
     }
 
-    public CO2 getCarbonDioxide() {
+    public String getCarbonDioxide() {
         return carbonDioxide;
     }
 

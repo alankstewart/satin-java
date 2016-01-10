@@ -6,6 +6,7 @@ package alankstewart.satin;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -16,11 +17,7 @@ import java.util.Arrays;
 import java.util.Formatter;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
@@ -28,16 +25,12 @@ import java.util.stream.Stream;
 
 import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;
-import static java.lang.Math.PI;
-import static java.lang.Math.exp;
-import static java.lang.Math.pow;
+import static java.lang.Math.*;
 import static java.lang.System.nanoTime;
 import static java.math.BigDecimal.ROUND_HALF_UP;
 import static java.math.BigDecimal.valueOf;
 import static java.nio.charset.Charset.defaultCharset;
-import static java.nio.file.StandardOpenOption.CREATE;
-import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
-import static java.nio.file.StandardOpenOption.WRITE;
+import static java.nio.file.StandardOpenOption.*;
 import static java.time.LocalDateTime.now;
 import static java.util.stream.Collectors.toList;
 
@@ -75,12 +68,12 @@ public final class Satin {
 
     private void calculate() throws IOException, URISyntaxException {
         final int[] inputPowers = getInputPowers();
-        Arrays.stream(getLaserData()).forEach(laser -> process(inputPowers, laser));
+        getLaserData().forEach(laser -> process(inputPowers, laser));
     }
 
     private void calculateConcurrently() throws IOException, URISyntaxException, InterruptedException, ExecutionException {
         final int[] inputPowers = getInputPowers();
-        invokeAllTasks(Arrays.stream(getLaserData()).parallel().map(laser -> (Callable<Void>) () -> {
+        invokeAllTasks(getLaserData().parallelStream().map(laser -> (Callable<Void>) () -> {
             process(inputPowers, laser);
             return null;
         }).collect(toList()));
@@ -98,18 +91,20 @@ public final class Satin {
     }
 
     private int[] getInputPowers() throws IOException, URISyntaxException {
-        try (final Stream<String> lines = Files.lines(getDataFilePath("pin.dat"))) {
+        Path path = Paths.get(getClass().getClassLoader().getResource("pin.dat").toURI());
+        try (final Stream<String> lines = Files.lines(path)) {
             return lines.mapToInt(Integer::parseInt).toArray();
         }
+
     }
 
-    private Laser[] getLaserData() throws IOException, URISyntaxException {
+    private List<Laser> getLaserData() throws IOException, URISyntaxException {
         final Pattern p = Pattern.compile("((md|pi)[a-z]{2}\\.out)\\s+([0-9]{2}\\.[0-9])\\s+([0-9]+)\\s+(?i:\\2)");
         try (final Stream<String> lines = Files.lines(getDataFilePath("laser.dat"))) {
             return lines.map(p::matcher)
                     .filter(Matcher::matches)
-                    .map(m -> new Laser(m.group(1), parseDouble(m.group(3)), parseInt(m.group(4)), Laser.CO2.valueOf(m.group(2).toUpperCase())))
-                    .toArray(Laser[]::new);
+                    .map(m -> new Laser(m.group(1), parseDouble(m.group(3)), parseInt(m.group(4)), m.group(2)))
+                    .collect(toList());
         }
     }
 
@@ -128,7 +123,7 @@ public final class Satin {
                     now().format(DATE_TIME_FORMATTER),
                     laser.getDischargePressure(),
                     laser.getSmallSignalGain(),
-                    laser.getCarbonDioxide().name());
+                    laser.getCarbonDioxide());
 
             Arrays.stream(inputPowers).forEach(inputPower -> gaussianCalculation(inputPower, laser.getSmallSignalGain())
                     .forEach(gaussian -> formatter.format("%d\t\t%s\t\t%d\t\t%s\t\t%s\n",
