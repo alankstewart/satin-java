@@ -70,13 +70,13 @@ public final class Satin {
 
     private void calculateConcurrently() throws IOException, URISyntaxException, InterruptedException, ExecutionException {
         final int[] inputPowers = getInputPowers();
-        invokeAllTasks(getLaserData().parallelStream().map(laser -> (Callable<Void>) () -> {
-            process(inputPowers, laser);
-            return null;
-        }).collect(toList()));
-    }
+        final List<Callable<Void>> tasks = getLaserData()
+                .parallelStream()
+                .map(laser -> (Callable<Void>) () -> {
+                    process(inputPowers, laser);
+                    return null;
+                }).collect(toList());
 
-    private void invokeAllTasks(final List<Callable<Void>> tasks) throws InterruptedException, ExecutionException {
         final ExecutorService executorService = Executors.newCachedThreadPool();
         try {
             for (final Future<Void> future : executorService.invokeAll(tasks)) {
