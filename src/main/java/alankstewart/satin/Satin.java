@@ -6,9 +6,7 @@ package alankstewart.satin;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -16,7 +14,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Formatter;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -91,27 +88,21 @@ public final class Satin {
     }
 
     private int[] getInputPowers() throws IOException, URISyntaxException {
-        Path path = Paths.get(getClass().getClassLoader().getResource("pin.dat").toURI());
+        final Path path = Paths.get(getClass().getClassLoader().getResource("pin.dat").toURI());
         try (final Stream<String> lines = Files.lines(path)) {
             return lines.mapToInt(Integer::parseInt).toArray();
         }
-
     }
 
     private List<Laser> getLaserData() throws IOException, URISyntaxException {
         final Pattern p = Pattern.compile("((md|pi)[a-z]{2}\\.out)\\s+([0-9]{2}\\.[0-9])\\s+([0-9]+)\\s+(?i:\\2)");
-        try (final Stream<String> lines = Files.lines(getDataFilePath("laser.dat"))) {
+        final Path path = Paths.get(getClass().getClassLoader().getResource("laser.dat").toURI());
+        try (final Stream<String> lines = Files.lines(path)) {
             return lines.map(p::matcher)
                     .filter(Matcher::matches)
                     .map(m -> new Laser(m.group(1), parseDouble(m.group(3)), parseInt(m.group(4)), m.group(2)))
                     .collect(toList());
         }
-    }
-
-    private Path getDataFilePath(final String fileName) throws URISyntaxException {
-        URL url = getClass().getClassLoader().getResource(fileName);
-        Objects.requireNonNull(url, "Failed to find file " + fileName);
-        return Paths.get(url.toURI());
     }
 
     private void process(final int[] inputPowers, final Laser laser) {
