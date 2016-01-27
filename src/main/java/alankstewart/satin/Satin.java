@@ -59,16 +59,16 @@ public final class Satin {
         } catch (final Exception e) {
             System.err.println(e.getMessage());
         } finally {
-            System.out.format("The time was %.3f seconds\n", valueOf(nanoTime() - start).divide(valueOf(1E9), 3, ROUND_HALF_UP));
+            System.out.printf("The time was %.3f seconds\n", valueOf(nanoTime() - start).divide(valueOf(1E9), 3, ROUND_HALF_UP));
         }
     }
 
-    private void calculate() throws IOException, URISyntaxException {
+    public void calculate() throws IOException, URISyntaxException {
         final int[] inputPowers = getInputPowers();
         getLaserData().forEach(laser -> process(inputPowers, laser));
     }
 
-    private void calculateConcurrently() throws IOException, URISyntaxException, InterruptedException, ExecutionException {
+    public void calculateConcurrently() throws IOException, URISyntaxException, InterruptedException, ExecutionException {
         final int[] inputPowers = getInputPowers();
         final List<Callable<Void>> tasks = getLaserData()
                 .parallelStream()
