@@ -24,8 +24,9 @@ import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;
 import static java.lang.Math.*;
 import static java.lang.System.nanoTime;
-import static java.math.BigDecimal.ROUND_HALF_UP;
+
 import static java.math.BigDecimal.valueOf;
+import static java.math.RoundingMode.HALF_UP;
 import static java.nio.charset.Charset.defaultCharset;
 import static java.nio.file.StandardOpenOption.*;
 import static java.time.LocalDateTime.now;
@@ -59,7 +60,7 @@ public final class Satin {
         } catch (final Exception e) {
             System.err.println(e.getMessage());
         } finally {
-            System.out.printf("The time was %.3f seconds\n", valueOf(nanoTime() - start).divide(valueOf(1E9), 3, ROUND_HALF_UP));
+            System.out.printf("The time was %.3f seconds\n", valueOf(nanoTime() - start).divide(valueOf(1E9), 3, HALF_UP));
         }
     }
 
