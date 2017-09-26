@@ -8,6 +8,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -15,6 +16,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Formatter;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -64,12 +66,12 @@ public final class Satin {
         }
     }
 
-    public void calculate() throws IOException, URISyntaxException {
+    private void calculate() throws IOException, URISyntaxException {
         final int[] inputPowers = getInputPowers();
         getLaserData().forEach(laser -> process(inputPowers, laser));
     }
 
-    public void calculateConcurrently() throws IOException, URISyntaxException, InterruptedException, ExecutionException {
+    private void calculateConcurrently() throws IOException, URISyntaxException, InterruptedException, ExecutionException {
         final int[] inputPowers = getInputPowers();
         final List<Callable<File>> tasks = getLaserData()
                 .parallelStream()
@@ -87,16 +89,19 @@ public final class Satin {
     }
 
     private int[] getInputPowers() throws IOException, URISyntaxException {
-        final Path path = Paths.get(getClass().getClassLoader().getResource("pin.dat").toURI());
-        try (final Stream<String> lines = Files.lines(path)) {
+        final URL url = getClass().getClassLoader().getResource("pin.dat");
+        Objects.requireNonNull(url, "Failed to find pin.dat");
+        final Stream<String> lines = Files.lines(Paths.get(url.toURI()));
+        try (lines) {
             return lines.mapToInt(Integer::parseInt).toArray();
         }
     }
 
     private List<Laser> getLaserData() throws IOException, URISyntaxException {
-        final Pattern p = Pattern.compile("((md|pi)[a-z]{2}\\.out)\\s+([0-9]{2}\\.[0-9])\\s+([0-9]+)\\s+(?i:\\2)");
-        final Path path = Paths.get(getClass().getClassLoader().getResource("laser.dat").toURI());
-        try (final Stream<String> lines = Files.lines(path)) {
+        final URL url = getClass().getClassLoader().getResource("laser.dat");
+        Objects.requireNonNull(url, "Failed to find laser.dat");
+        try (final Stream<String> lines = Files.lines(Paths.get(url.toURI()))) {
+            final Pattern p = Pattern.compile("((md|pi)[a-z]{2}\\.out)\\s+([0-9]{2}\\.[0-9])\\s+([0-9]+)\\s+(?i:\\2)");
             return lines.map(p::matcher)
                     .filter(Matcher::matches)
                     .map(m -> new Laser(m.group(1), parseDouble(m.group(3)), parseInt(m.group(4)), m.group(2)))
