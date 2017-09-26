@@ -5,6 +5,7 @@
 package alankstewart.satin;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
@@ -24,7 +25,6 @@ import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;
 import static java.lang.Math.*;
 import static java.lang.System.nanoTime;
-
 import static java.math.BigDecimal.valueOf;
 import static java.math.RoundingMode.HALF_UP;
 import static java.nio.charset.Charset.defaultCharset;
@@ -71,16 +71,14 @@ public final class Satin {
 
     public void calculateConcurrently() throws IOException, URISyntaxException, InterruptedException, ExecutionException {
         final int[] inputPowers = getInputPowers();
-        final List<Callable<Void>> tasks = getLaserData()
+        final List<Callable<File>> tasks = getLaserData()
                 .parallelStream()
-                .map(laser -> (Callable<Void>) () -> {
-                    process(inputPowers, laser);
-                    return null;
-                }).collect(toList());
+                .map(laser -> (Callable<File>) () -> process(inputPowers, laser))
+                .collect(toList());
 
         final ExecutorService executorService = Executors.newCachedThreadPool();
         try {
-            for (final Future<Void> future : executorService.invokeAll(tasks)) {
+            for (final Future<File> future : executorService.invokeAll(tasks)) {
                 future.get();
             }
         } finally {
@@ -106,7 +104,7 @@ public final class Satin {
         }
     }
 
-    private void process(final int[] inputPowers, final Laser laser) {
+    private File process(final int[] inputPowers, final Laser laser) {
         final Path path = PATH.resolve(laser.getOutputFile());
         final String header = "Start date: %s\n\nGaussian Beam\n\nPressure in Main Discharge = %skPa\nSmall-signal Gain = %s\nCO2 via %s\n\nPin\t\tPout\t\tSat. Int\tln(Pout/Pin\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n";
         try (BufferedWriter writer = Files.newBufferedWriter(path, defaultCharset(), CREATE, WRITE, TRUNCATE_EXISTING);
@@ -126,6 +124,7 @@ public final class Satin {
                             gaussian.getOutputPowerMinusInputPower())));
 
             formatter.format("\nEnd date: %s\n", now().format(DATE_TIME_FORMATTER));
+            return path.toFile();
         } catch (final IOException e) {
             throw new RuntimeException(e);
         }
