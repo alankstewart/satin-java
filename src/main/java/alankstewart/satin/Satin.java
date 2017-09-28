@@ -13,7 +13,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
 import java.util.Formatter;
 import java.util.List;
 import java.util.Objects;
@@ -67,12 +66,12 @@ public final class Satin {
     }
 
     private void calculate() throws IOException, URISyntaxException {
-        final int[] inputPowers = getInputPowers();
+        final List<Integer> inputPowers = getInputPowers();
         getLaserData().forEach(laser -> process(inputPowers, laser));
     }
 
     private void calculateConcurrently() throws IOException, URISyntaxException, InterruptedException, ExecutionException {
-        final int[] inputPowers = getInputPowers();
+        final List<Integer> inputPowers = getInputPowers();
         final List<Callable<File>> tasks = getLaserData()
                 .parallelStream()
                 .map(laser -> (Callable<File>) () -> process(inputPowers, laser))
@@ -88,12 +87,12 @@ public final class Satin {
         }
     }
 
-    private int[] getInputPowers() throws IOException, URISyntaxException {
+    private List<Integer> getInputPowers() throws IOException, URISyntaxException {
         final URL url = getClass().getClassLoader().getResource("pin.dat");
         Objects.requireNonNull(url, "Failed to find pin.dat");
         final Stream<String> lines = Files.lines(Paths.get(url.toURI()));
         try (lines) {
-            return lines.mapToInt(Integer::parseInt).toArray();
+            return lines.mapToInt(Integer::parseInt).boxed().collect(toList());
         }
     }
 
@@ -109,10 +108,10 @@ public final class Satin {
         }
     }
 
-    private File process(final int[] inputPowers, final Laser laser) {
+    private File process(final List<Integer> inputPowers, final Laser laser) {
         final Path path = PATH.resolve(laser.getOutputFile());
         final String header = "Start date: %s\n\nGaussian Beam\n\nPressure in Main Discharge = %skPa\nSmall-signal Gain = %s\nCO2 via %s\n\nPin\t\tPout\t\tSat. Int\tln(Pout/Pin\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n";
-        try (BufferedWriter writer = Files.newBufferedWriter(path, defaultCharset(), CREATE, WRITE, TRUNCATE_EXISTING);
+        try (final BufferedWriter writer = Files.newBufferedWriter(path, defaultCharset(), CREATE, WRITE, TRUNCATE_EXISTING);
              final Formatter formatter = new Formatter(writer)) {
             formatter.format(header,
                     now().format(DATE_TIME_FORMATTER),
@@ -120,7 +119,7 @@ public final class Satin {
                     laser.getSmallSignalGain(),
                     laser.getCarbonDioxide());
 
-            Arrays.stream(inputPowers).forEach(inputPower -> gaussianCalculation(inputPower, laser.getSmallSignalGain())
+            inputPowers.forEach(inputPower -> gaussianCalculation(inputPower, laser.getSmallSignalGain())
                     .forEach(gaussian -> formatter.format("%d\t\t%s\t\t%d\t\t%s\t\t%s\n",
                             gaussian.getInputPower(),
                             gaussian.getOutputPower(),
@@ -145,13 +144,15 @@ public final class Satin {
 
         return IntStream.rangeClosed(10, 25).map(i -> i * 1000).mapToObj(saturationIntensity -> {
             final double expr3 = saturationIntensity * expr2;
-            final double outputPower = IntStream.rangeClosed(0, 250).mapToDouble(r -> r * DR).map(radius -> {
-                double outputIntensity = inputIntensity * exp(-2 * pow(radius, 2) / RAD2);
-                for (int j = 0; j < INCR; j++) {
-                    outputIntensity *= 1 + expr3 / (saturationIntensity + outputIntensity) - expr1[j];
-                }
-                return outputIntensity * EXPR * radius;
-            }).sum();
+            final double outputPower = IntStream.rangeClosed(0, 250)
+                    .mapToDouble(r -> r * DR)
+                    .map(radius -> {
+                        double outputIntensity = inputIntensity * exp(-2 * pow(radius, 2) / RAD2);
+                        for (int j = 0; j < INCR; j++) {
+                            outputIntensity *= 1 + expr3 / (saturationIntensity + outputIntensity) - expr1[j];
+                        }
+                        return outputIntensity * EXPR * radius;
+                    }).sum();
             return new Gaussian(inputPower, outputPower, saturationIntensity);
         }).collect(toList());
     }
