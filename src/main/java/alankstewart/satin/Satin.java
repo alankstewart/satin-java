@@ -99,7 +99,8 @@ public final class Satin {
     private List<Laser> getLaserData() throws IOException, URISyntaxException {
         final URL url = getClass().getClassLoader().getResource("laser.dat");
         Objects.requireNonNull(url, "Failed to find laser.dat");
-        try (final Stream<String> lines = Files.lines(Paths.get(url.toURI()))) {
+        final Stream<String> lines = Files.lines(Paths.get(url.toURI()));
+        try (lines) {
             final Pattern p = Pattern.compile("((md|pi)[a-z]{2}\\.out)\\s+([0-9]{2}\\.[0-9])\\s+([0-9]+)\\s+(?i:\\2)");
             return lines.map(p::matcher)
                     .filter(Matcher::matches)
