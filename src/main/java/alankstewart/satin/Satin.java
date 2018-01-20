@@ -20,7 +20,6 @@ import java.util.concurrent.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;
@@ -90,23 +89,17 @@ public final class Satin {
     private List<Integer> getInputPowers() throws IOException, URISyntaxException {
         final URL url = getClass().getClassLoader().getResource("pin.dat");
         Objects.requireNonNull(url, "Failed to find pin.dat");
-        final Stream<String> lines = Files.lines(Paths.get(url.toURI()));
-        try (lines) {
-            return lines.mapToInt(Integer::parseInt).boxed().collect(toList());
-        }
+        return Files.lines(Paths.get(url.toURI())).mapToInt(Integer::parseInt).boxed().collect(toList());
     }
 
     private List<Laser> getLaserData() throws IOException, URISyntaxException {
         final URL url = getClass().getClassLoader().getResource("laser.dat");
         Objects.requireNonNull(url, "Failed to find laser.dat");
-        final Stream<String> lines = Files.lines(Paths.get(url.toURI()));
-        try (lines) {
-            final Pattern p = Pattern.compile("((md|pi)[a-z]{2}\\.out)\\s+([0-9]{2}\\.[0-9])\\s+([0-9]+)\\s+(?i:\\2)");
-            return lines.map(p::matcher)
-                    .filter(Matcher::matches)
-                    .map(m -> new Laser(m.group(1), parseDouble(m.group(3)), parseInt(m.group(4)), m.group(2)))
-                    .collect(toList());
-        }
+        final Pattern p = Pattern.compile("((md|pi)[a-z]{2}\\.out)\\s+([0-9]{2}\\.[0-9])\\s+([0-9]+)\\s+(?i:\\2)");
+        return Files.lines(Paths.get(url.toURI())).map(p::matcher)
+                .filter(Matcher::matches)
+                .map(m -> new Laser(m.group(1), parseDouble(m.group(3)), parseInt(m.group(4)), m.group(2)))
+                .collect(toList());
     }
 
     private File process(final List<Integer> inputPowers, final Laser laser) {
