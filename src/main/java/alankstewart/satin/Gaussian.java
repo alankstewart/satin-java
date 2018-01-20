@@ -8,9 +8,9 @@ import static java.math.RoundingMode.HALF_UP;
 
 final class Gaussian {
 
-    private final int inputPower;
+    public final int inputPower;
+    public final int saturationIntensity;
     private final double outputPower;
-    private final int saturationIntensity;
 
     public Gaussian(final int inputPower, final double outputPower, final int saturationIntensity) {
         this.inputPower = inputPower;
@@ -18,17 +18,10 @@ final class Gaussian {
         this.saturationIntensity = saturationIntensity;
     }
 
-    public int getInputPower() {
-        return inputPower;
-    }
-
     public BigDecimal getOutputPower() {
         return valueOf(outputPower).setScale(3, HALF_UP);
     }
 
-    public int getSaturationIntensity() {
-        return saturationIntensity;
-    }
 
     public BigDecimal getLogOutputPowerDividedByInputPower() {
         return valueOf(log(outputPower / inputPower)).setScale(3, HALF_UP);

@@ -103,21 +103,21 @@ public final class Satin {
     }
 
     private File process(final List<Integer> inputPowers, final Laser laser) {
-        final Path path = PATH.resolve(laser.getOutputFile());
+        final Path path = PATH.resolve(laser.outputFile);
         final String header = "Start date: %s\n\nGaussian Beam\n\nPressure in Main Discharge = %skPa\nSmall-signal Gain = %s\nCO2 via %s\n\nPin\t\tPout\t\tSat. Int\tln(Pout/Pin\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n";
         try (final BufferedWriter writer = Files.newBufferedWriter(path, defaultCharset(), CREATE, WRITE, TRUNCATE_EXISTING);
              final Formatter formatter = new Formatter(writer)) {
             formatter.format(header,
                     now().format(DATE_TIME_FORMATTER),
-                    laser.getDischargePressure(),
-                    laser.getSmallSignalGain(),
-                    laser.getCarbonDioxide());
+                    laser.dischargePressure,
+                    laser.smallSignalGain,
+                    laser.carbonDioxide);
 
-            inputPowers.forEach(inputPower -> gaussianCalculation(inputPower, laser.getSmallSignalGain())
+            inputPowers.forEach(inputPower -> gaussianCalculation(inputPower, laser.smallSignalGain)
                     .forEach(gaussian -> formatter.format("%d\t\t%s\t\t%d\t\t%s\t\t%s\n",
-                            gaussian.getInputPower(),
+                            gaussian.inputPower,
                             gaussian.getOutputPower(),
-                            gaussian.getSaturationIntensity(),
+                            gaussian.saturationIntensity,
                             gaussian.getLogOutputPowerDividedByInputPower(),
                             gaussian.getOutputPowerMinusInputPower())));
 

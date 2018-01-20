@@ -105,7 +105,7 @@ public class SatinTest {
 
     private Gaussian getGaussian(List<Gaussian> gaussians, int saturationIntensity) {
         return gaussians.stream()
-                .filter(g -> g.getSaturationIntensity() == saturationIntensity)
+                .filter(g -> g.saturationIntensity == saturationIntensity)
                 .findAny()
                 .get();
     }
