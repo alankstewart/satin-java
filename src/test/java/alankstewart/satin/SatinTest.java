@@ -17,9 +17,9 @@ public class SatinTest {
     @Test
     public void shoulReturnCorrectResultsFor1WattInputPower() {
         // mdtw.out
-        List<Gaussian> gaussians = satin.gaussianCalculation(1, 24.2);
+        var gaussians = satin.gaussianCalculation(1, 24.2);
 
-        Gaussian gaussian = getGaussian(gaussians, 10000);
+        var gaussian = getGaussian(gaussians, 10000);
         assertTrue(gaussian.getOutputPower().compareTo(new BigDecimal("1.266")) == 0);
         assertTrue(gaussian.getOutputPowerMinusInputPower().compareTo(new BigDecimal("0.266")) == 0);
 
@@ -42,9 +42,9 @@ public class SatinTest {
     @Test
     public void shoulReturnCorrectResultsFor10WattsInputPower() {
         // mdtw.out
-        List<Gaussian> gaussians = satin.gaussianCalculation(10, 24.2);
+        var gaussians = satin.gaussianCalculation(10, 24.2);
 
-        Gaussian gaussian = getGaussian(gaussians, 10000);
+        var gaussian = getGaussian(gaussians, 10000);
         assertTrue(gaussian.getOutputPower().compareTo(new BigDecimal("12.463")) == 0);
         assertTrue(gaussian.getOutputPowerMinusInputPower().compareTo(new BigDecimal("2.463")) == 0);
 
@@ -67,7 +67,7 @@ public class SatinTest {
     @Test
     public void shoulReturnCorrectResultsFor150WattsInputPower() {
         // mdtw.out
-        List<Gaussian> gaussians = satin.gaussianCalculation(150, 24.2);
+        var gaussians = satin.gaussianCalculation(150, 24.2);
 
         Gaussian gaussian = getGaussian(gaussians, 10000);
         assertTrue(gaussian.getOutputPower().compareTo(new BigDecimal("173.134")) == 0);

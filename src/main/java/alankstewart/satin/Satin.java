@@ -4,11 +4,9 @@
 
 package alankstewart.satin;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -16,7 +14,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.Formatter;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
@@ -49,8 +49,8 @@ public final class Satin {
     private static final int INCR = 8001;
 
     public static void main(final String[] args) {
-        final long start = nanoTime();
-        final Satin satin = new Satin();
+        final var  start = nanoTime();
+        final var satin = new Satin();
         try {
             if (args.length > 0 && args[0].equals("-single")) {
                 satin.calculate();
@@ -65,20 +65,20 @@ public final class Satin {
     }
 
     private void calculate() throws IOException, URISyntaxException {
-        final List<Integer> inputPowers = getInputPowers();
+        final var inputPowers = getInputPowers();
         getLaserData().forEach(laser -> process(inputPowers, laser));
     }
 
     private void calculateConcurrently() throws IOException, URISyntaxException, InterruptedException, ExecutionException {
-        final List<Integer> inputPowers = getInputPowers();
-        final List<Callable<File>> tasks = getLaserData()
+        final var inputPowers = getInputPowers();
+        final var tasks = getLaserData()
                 .parallelStream()
                 .map(laser -> (Callable<File>) () -> process(inputPowers, laser))
                 .collect(toList());
 
-        final ExecutorService executorService = Executors.newCachedThreadPool();
+        final var executorService = Executors.newCachedThreadPool();
         try {
-            for (final Future<File> future : executorService.invokeAll(tasks)) {
+            for (final var future : executorService.invokeAll(tasks)) {
                 future.get();
             }
         } finally {
@@ -87,15 +87,15 @@ public final class Satin {
     }
 
     private List<Integer> getInputPowers() throws IOException, URISyntaxException {
-        final URL url = getClass().getClassLoader().getResource("pin.dat");
+        final var url = getClass().getClassLoader().getResource("pin.dat");
         Objects.requireNonNull(url, "Failed to find pin.dat");
         return Files.lines(Paths.get(url.toURI())).mapToInt(Integer::parseInt).boxed().collect(toList());
     }
 
     private List<Laser> getLaserData() throws IOException, URISyntaxException {
-        final URL url = getClass().getClassLoader().getResource("laser.dat");
+        final var url = getClass().getClassLoader().getResource("laser.dat");
         Objects.requireNonNull(url, "Failed to find laser.dat");
-        final Pattern p = Pattern.compile("((md|pi)[a-z]{2}\\.out)\\s+([0-9]{2}\\.[0-9])\\s+([0-9]+)\\s+(?i:\\2)");
+        final var p = Pattern.compile("((md|pi)[a-z]{2}\\.out)\\s+([0-9]{2}\\.[0-9])\\s+([0-9]+)\\s+(?i:\\2)");
         return Files.lines(Paths.get(url.toURI())).map(p::matcher)
                 .filter(Matcher::matches)
                 .map(m -> new Laser(m.group(1), parseDouble(m.group(3)), parseInt(m.group(4)), m.group(2)))
@@ -103,10 +103,10 @@ public final class Satin {
     }
 
     private File process(final List<Integer> inputPowers, final Laser laser) {
-        final Path path = PATH.resolve(laser.outputFile);
-        final String header = "Start date: %s\n\nGaussian Beam\n\nPressure in Main Discharge = %skPa\nSmall-signal Gain = %s\nCO2 via %s\n\nPin\t\tPout\t\tSat. Int\tln(Pout/Pin\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n";
-        try (final BufferedWriter writer = Files.newBufferedWriter(path, defaultCharset(), CREATE, WRITE, TRUNCATE_EXISTING);
-             final Formatter formatter = new Formatter(writer)) {
+        final var path = PATH.resolve(laser.outputFile);
+        final var header = "Start date: %s\n\nGaussian Beam\n\nPressure in Main Discharge = %skPa\nSmall-signal Gain = %s\nCO2 via %s\n\nPin\t\tPout\t\tSat. Int\tln(Pout/Pin\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n";
+        try (final var writer = Files.newBufferedWriter(path, defaultCharset(), CREATE, WRITE, TRUNCATE_EXISTING);
+             final var formatter = new Formatter(writer)) {
             formatter.format(header,
                     now().format(DATE_TIME_FORMATTER),
                     laser.dischargePressure,
@@ -129,20 +129,20 @@ public final class Satin {
     }
 
     List<Gaussian> gaussianCalculation(final int inputPower, final double smallSignalGain) {
-        final double[] expr1 = IntStream.range(0, INCR)
+        final var expr1 = IntStream.range(0, INCR)
                 .mapToDouble(i -> ((double) i - INCR / 2) / 25)
                 .map(zInc -> 2 * zInc * DZ / (Z12 + pow(zInc, 2)))
                 .toArray();
-        final double expr2 = smallSignalGain / 32000 * DZ;
-        final double inputIntensity = 2 * inputPower / AREA;
+        final var expr2 = smallSignalGain / 32000 * DZ;
+        final var inputIntensity = 2 * inputPower / AREA;
 
         return IntStream.rangeClosed(10, 25).map(i -> i * 1000).mapToObj(saturationIntensity -> {
-            final double expr3 = saturationIntensity * expr2;
-            final double outputPower = IntStream.rangeClosed(0, 250)
+            final var expr3 = saturationIntensity * expr2;
+            final var outputPower = IntStream.rangeClosed(0, 250)
                     .mapToDouble(r -> r * DR)
                     .map(radius -> {
-                        double outputIntensity = inputIntensity * exp(-2 * pow(radius, 2) / RAD2);
-                        for (int j = 0; j < INCR; j++) {
+                        var outputIntensity = inputIntensity * exp(-2 * pow(radius, 2) / RAD2);
+                        for (var j = 0; j < INCR; j++) {
                             outputIntensity *= 1 + expr3 / (saturationIntensity + outputIntensity) - expr1[j];
                         }
                         return outputIntensity * EXPR * radius;
