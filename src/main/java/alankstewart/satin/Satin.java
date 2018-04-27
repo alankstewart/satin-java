@@ -49,7 +49,7 @@ public final class Satin {
     private static final int INCR = 8001;
 
     public static void main(final String[] args) {
-        final var  start = nanoTime();
+        final var start = nanoTime();
         final var satin = new Satin();
         try {
             if (args.length > 0 && args[0].equals("-single")) {
