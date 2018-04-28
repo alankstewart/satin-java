@@ -96,7 +96,8 @@ public final class Satin {
         final var url = getClass().getClassLoader().getResource("laser.dat");
         Objects.requireNonNull(url, "Failed to find laser.dat");
         final var p = Pattern.compile("((md|pi)[a-z]{2}\\.out)\\s+([0-9]{2}\\.[0-9])\\s+([0-9]+)\\s+(?i:\\2)");
-        return Files.lines(Paths.get(url.toURI())).map(p::matcher)
+        return Files.lines(Paths.get(url.toURI()))
+                .map(p::matcher)
                 .filter(Matcher::matches)
                 .map(m -> new Laser(m.group(1), parseDouble(m.group(3)), parseInt(m.group(4)), m.group(2)))
                 .collect(toList());
