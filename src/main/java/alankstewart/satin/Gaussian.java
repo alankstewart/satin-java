@@ -10,24 +10,16 @@ final class Gaussian {
 
     public final int inputPower;
     public final int saturationIntensity;
-    private final double outputPower;
+    public final BigDecimal outputPower;
+    public final BigDecimal logOutputPowerDividedByInputPower;
+    public final BigDecimal outputPowerMinusInputPower;
 
     public Gaussian(final int inputPower, final double outputPower, final int saturationIntensity) {
         this.inputPower = inputPower;
-        this.outputPower = outputPower;
+        this.outputPower = valueOf(outputPower).setScale(3, HALF_UP);
         this.saturationIntensity = saturationIntensity;
-    }
+        logOutputPowerDividedByInputPower = valueOf(log(outputPower / inputPower)).setScale(3, HALF_UP);
+        outputPowerMinusInputPower = valueOf(outputPower).subtract(valueOf(inputPower)).setScale(3, HALF_UP);
 
-    public BigDecimal getOutputPower() {
-        return valueOf(outputPower).setScale(3, HALF_UP);
-    }
-
-
-    public BigDecimal getLogOutputPowerDividedByInputPower() {
-        return valueOf(log(outputPower / inputPower)).setScale(3, HALF_UP);
-    }
-
-    public BigDecimal getOutputPowerMinusInputPower() {
-        return valueOf(outputPower).subtract(valueOf(inputPower)).setScale(3, HALF_UP);
     }
 }

@@ -116,10 +116,10 @@ public final class Satin {
             inputPowers.forEach(inputPower -> gaussianCalculation(inputPower, laser.smallSignalGain)
                     .forEach(gaussian -> formatter.format("%d\t\t%s\t\t%d\t\t%s\t\t%s\n",
                             gaussian.inputPower,
-                            gaussian.getOutputPower(),
+                            gaussian.outputPower,
                             gaussian.saturationIntensity,
-                            gaussian.getLogOutputPowerDividedByInputPower(),
-                            gaussian.getOutputPowerMinusInputPower())));
+                            gaussian.logOutputPowerDividedByInputPower,
+                            gaussian.outputPowerMinusInputPower)));
 
             formatter.format("\nEnd date: %s\n", now().format(DATE_TIME_FORMATTER));
             return path.toFile();
@@ -136,7 +136,7 @@ public final class Satin {
         final var expr2 = smallSignalGain / 32000 * DZ;
         final var inputIntensity = 2 * inputPower / AREA;
 
-        return IntStream.rangeClosed(10, 25).map(i -> i * 1000).mapToObj(saturationIntensity -> {
+        return IntStream.iterate(10000, i -> i <= 25000, i -> i + 1000).mapToObj(saturationIntensity -> {
             final var expr3 = saturationIntensity * expr2;
             final var outputPower = IntStream.rangeClosed(0, 250)
                     .mapToDouble(r -> r * DR)

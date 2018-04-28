@@ -12,16 +12,16 @@ public class GaussianTest {
 
     @Test
     public void shouldReturnOutputPowerAsBigDecimal() {
-        assertTrue(gaussian.getOutputPower().compareTo(new BigDecimal("179.139")) == 0);
+        assertTrue(gaussian.outputPower.compareTo(new BigDecimal("179.139")) == 0);
     }
 
     @Test
     public void shouldReturnLogOutputPowerDividedByInputPowerAsBigDecimal() {
-        assertTrue(gaussian.getLogOutputPowerDividedByInputPower().compareTo(new BigDecimal("0.178")) == 0);
+        assertTrue(gaussian.logOutputPowerDividedByInputPower.compareTo(new BigDecimal("0.178")) == 0);
     }
 
     @Test
     public void shouldReturnOutputPowerMinusInputPowerAsBigDecimal() {
-        assertTrue(gaussian.getOutputPowerMinusInputPower().compareTo(new BigDecimal("29.139")) == 0);
+        assertTrue(gaussian.outputPowerMinusInputPower.compareTo(new BigDecimal("29.139")) == 0);
     }
 }
