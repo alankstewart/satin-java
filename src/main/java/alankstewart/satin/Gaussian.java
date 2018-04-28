@@ -20,6 +20,5 @@ final class Gaussian {
         this.saturationIntensity = saturationIntensity;
         logOutputPowerDividedByInputPower = valueOf(log(outputPower / inputPower)).setScale(3, HALF_UP);
         outputPowerMinusInputPower = valueOf(outputPower).subtract(valueOf(inputPower)).setScale(3, HALF_UP);
-
     }
 }
