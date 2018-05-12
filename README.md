@@ -1,4 +1,4 @@
-satin-java
+# satin-java
 
 [![Build Status](https://travis-ci.org/alankstewart/satin-java.svg?branch=master)](https://travis-ci.org/alankstewart/satin-java)
 
