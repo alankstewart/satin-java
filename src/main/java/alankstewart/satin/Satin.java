@@ -141,12 +141,12 @@ public final class Satin {
         return IntStream.iterate(10000, i -> i <= 25000, i -> i + 1000).mapToObj(saturationIntensity -> {
             final var expr3 = saturationIntensity * expr2;
             final var outputPower = DoubleStream.iterate(0, r -> r < 0.5, r -> r + DR)
-                    .map(radius -> {
-                        var outputIntensity = inputIntensity * exp(-2 * pow(radius, 2) / RAD2);
+                    .map(r -> {
+                        var outputIntensity = inputIntensity * exp(-2 * pow(r, 2) / RAD2);
                         for (var j = 0; j < INCR; j++) {
                             outputIntensity *= 1 + expr3 / (saturationIntensity + outputIntensity) - expr1[j];
                         }
-                        return outputIntensity * EXPR * radius;
+                        return outputIntensity * EXPR * r;
                     }).sum();
             return new Gaussian(inputPower, outputPower, saturationIntensity);
         }).collect(toList());
