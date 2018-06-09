@@ -19,6 +19,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
 import static java.lang.Double.parseDouble;
@@ -139,8 +140,7 @@ public final class Satin {
 
         return IntStream.iterate(10000, i -> i <= 25000, i -> i + 1000).mapToObj(saturationIntensity -> {
             final var expr3 = saturationIntensity * expr2;
-            final var outputPower = IntStream.rangeClosed(0, 250)
-                    .mapToDouble(r -> r * DR)
+            final var outputPower = DoubleStream.iterate(0, r -> r < 0.5, r -> r + DR)
                     .map(radius -> {
                         var outputIntensity = inputIntensity * exp(-2 * pow(radius, 2) / RAD2);
                         for (var j = 0; j < INCR; j++) {
