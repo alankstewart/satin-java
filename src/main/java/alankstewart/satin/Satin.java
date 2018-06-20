@@ -31,7 +31,7 @@ import static java.math.RoundingMode.HALF_UP;
 import static java.nio.charset.Charset.defaultCharset;
 import static java.nio.file.StandardOpenOption.*;
 import static java.time.LocalDateTime.now;
-import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toUnmodifiableList;
 
 public final class Satin {
 
@@ -75,7 +75,7 @@ public final class Satin {
         final var tasks = getLaserData()
                 .parallelStream()
                 .map(laser -> (Callable<File>) () -> process(inputPowers, laser))
-                .collect(toList());
+                .collect(toUnmodifiableList());
 
         final var executorService = Executors.newCachedThreadPool();
         try {
@@ -90,7 +90,7 @@ public final class Satin {
     private List<Integer> getInputPowers() throws IOException, URISyntaxException {
         final var url = getClass().getClassLoader().getResource("pin.dat");
         Objects.requireNonNull(url, "Failed to find pin.dat");
-        return Files.lines(Paths.get(url.toURI())).mapToInt(Integer::parseInt).boxed().collect(toList());
+        return Files.lines(Paths.get(url.toURI())).mapToInt(Integer::parseInt).boxed().collect(toUnmodifiableList());
     }
 
     private List<Laser> getLaserData() throws IOException, URISyntaxException {
@@ -101,7 +101,7 @@ public final class Satin {
                 .map(p::matcher)
                 .filter(Matcher::matches)
                 .map(m -> new Laser(m.group(1), parseDouble(m.group(3)), parseInt(m.group(4)), m.group(2)))
-                .collect(toList());
+                .collect(toUnmodifiableList());
     }
 
     private File process(final List<Integer> inputPowers, final Laser laser) {
@@ -152,6 +152,6 @@ public final class Satin {
                             .sum();
                     return new Gaussian(inputPower, outputPower, saturationIntensity);
                 })
-                .collect(toList());
+                .collect(toUnmodifiableList());
     }
 }
