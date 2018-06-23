@@ -124,6 +124,7 @@ public final class Satin {
                             gaussian.outputPowerMinusInputPower)));
 
             formatter.format("\nEnd date: %s\n", now().format(DATE_TIME_FORMATTER));
+            formatter.flush();
             return path.toFile();
         } catch (final IOException e) {
             throw new RuntimeException(e);
