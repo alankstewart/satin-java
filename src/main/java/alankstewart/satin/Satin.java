@@ -100,8 +100,12 @@ public final class Satin {
         return Files.lines(Paths.get(url.toURI()))
                 .map(p::matcher)
                 .filter(Matcher::matches)
-                .map(m -> new Laser(m.group(1), parseDouble(m.group(3)), parseInt(m.group(4)), m.group(2)))
+                .map(this::getLaser)
                 .collect(toUnmodifiableList());
+    }
+
+    private Laser getLaser(Matcher m) {
+        return new Laser(m.group(1), parseDouble(m.group(3)), parseInt(m.group(4)), m.group(2));
     }
 
     private File process(final List<Integer> inputPowers, final Laser laser) {
