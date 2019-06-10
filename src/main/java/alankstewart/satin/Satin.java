@@ -24,12 +24,16 @@ import java.util.stream.IntStream;
 
 import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;
-import static java.lang.Math.*;
+import static java.lang.Math.PI;
+import static java.lang.Math.exp;
+import static java.lang.Math.pow;
 import static java.lang.System.nanoTime;
 import static java.math.BigDecimal.valueOf;
 import static java.math.RoundingMode.HALF_UP;
 import static java.nio.charset.Charset.defaultCharset;
-import static java.nio.file.StandardOpenOption.*;
+import static java.nio.file.StandardOpenOption.CREATE;
+import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
+import static java.nio.file.StandardOpenOption.WRITE;
 import static java.time.LocalDateTime.now;
 import static java.util.stream.Collectors.toUnmodifiableList;
 
@@ -53,11 +57,7 @@ public final class Satin {
         final var start = nanoTime();
         final var satin = new Satin();
         try {
-            if (args.length > 0 && args[0].equals("-single")) {
-                satin.calculate();
-            } else {
-                satin.calculateConcurrently();
-            }
+            satin.calculate();
         } catch (final Exception e) {
             System.err.println(e.getMessage());
         } finally {
@@ -65,12 +65,7 @@ public final class Satin {
         }
     }
 
-    private void calculate() throws IOException, URISyntaxException {
-        final var inputPowers = getInputPowers();
-        getLaserData().forEach(laser -> process(inputPowers, laser));
-    }
-
-    private void calculateConcurrently() throws IOException, URISyntaxException, InterruptedException, ExecutionException {
+    private void calculate() throws IOException, URISyntaxException, InterruptedException, ExecutionException {
         final var inputPowers = getInputPowers();
         final var tasks = getLaserData()
                 .parallelStream()
