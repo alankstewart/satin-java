@@ -6,6 +6,7 @@ import org.junit.jupiter.params.provider.CsvFileSource;
 
 import java.math.BigDecimal;
 
+import static java.math.RoundingMode.HALF_UP;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -21,18 +22,18 @@ public class SatinTest {
                                          double smallSignalGain,
                                          int saturationIntensity,
                                          double outputPower,
-                                         double logOutputPowerDividedByInputPower,
-                                         double outputPowerMinusInputPower) {
+                                         BigDecimal logOutputPowerDividedByInputPower,
+                                         BigDecimal outputPowerMinusInputPower) {
         var satin = new Satin();
         var gaussians = satin.gaussianCalculation(inputPower, smallSignalGain);
         gaussians.parallelStream()
-                .filter(g -> g.saturationIntensity == saturationIntensity)
+                .filter(g -> g.saturationIntensity() == saturationIntensity)
                 .findFirst()
                 .ifPresentOrElse(g ->
                         assertAll(
-                                () -> assertEquals(0, g.outputPower.compareTo(BigDecimal.valueOf(outputPower))),
-                                () -> assertEquals(0, g.logOutputPowerDividedByInputPower.compareTo(BigDecimal.valueOf(logOutputPowerDividedByInputPower))),
-                                () -> assertEquals(0, g.outputPowerMinusInputPower.compareTo(BigDecimal.valueOf(outputPowerMinusInputPower)))
+                                () -> assertEquals(0, new BigDecimal(g.outputPower()).setScale(3, HALF_UP).compareTo(new BigDecimal(outputPower).setScale(3, HALF_UP))),
+                                () -> assertEquals(0, g.logOutputPowerDividedByInputPower().compareTo(logOutputPowerDividedByInputPower)),
+                                () -> assertEquals(0, g.outputPowerMinusInputPower().compareTo(outputPowerMinusInputPower))
                         ), Assertions::fail);
     }
 }

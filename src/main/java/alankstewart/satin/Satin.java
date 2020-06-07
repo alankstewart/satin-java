@@ -104,23 +104,23 @@ public final class Satin {
     }
 
     private File process(final List<Integer> inputPowers, final Laser laser) {
-        final var path = PATH.resolve(laser.outputFile);
+        final var path = PATH.resolve(laser.outputFile());
         final var header = "Start date: %s\n\nGaussian Beam\n\nPressure in Main Discharge = %skPa\nSmall-signal Gain = %s\nCO2 via %s\n\nPin\t\tPout\t\tSat. Int\tln(Pout/Pin\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n";
         try (final var writer = Files.newBufferedWriter(path, defaultCharset(), CREATE, WRITE, TRUNCATE_EXISTING);
              final var formatter = new Formatter(writer)) {
             formatter.format(header,
                     now().format(DATE_TIME_FORMATTER),
-                    laser.dischargePressure,
-                    laser.smallSignalGain,
-                    laser.carbonDioxide);
+                    laser.dischargePressure(),
+                    laser.smallSignalGain(),
+                    laser.carbonDioxide());
 
-            inputPowers.forEach(inputPower -> gaussianCalculation(inputPower, laser.smallSignalGain)
+            inputPowers.forEach(inputPower -> gaussianCalculation(inputPower, laser.smallSignalGain())
                     .forEach(gaussian -> formatter.format("%d\t\t%s\t\t%d\t\t%s\t\t%s\n",
-                            gaussian.inputPower,
-                            gaussian.outputPower,
-                            gaussian.saturationIntensity,
-                            gaussian.logOutputPowerDividedByInputPower,
-                            gaussian.outputPowerMinusInputPower)));
+                            gaussian.inputPower(),
+                            gaussian.outputPower(),
+                            gaussian.saturationIntensity(),
+                            gaussian.logOutputPowerDividedByInputPower(),
+                            gaussian.outputPowerMinusInputPower())));
 
             formatter.format("\nEnd date: %s\n", now().format(DATE_TIME_FORMATTER));
             formatter.flush();
