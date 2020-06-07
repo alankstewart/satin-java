@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class SatinTest {
 
     @ParameterizedTest
-    @CsvFileSource(resources = "/satin-all.csv")
+    @CsvFileSource(resources = "/satin.csv")
     public void shouldCalculateGaussians(int inputPower,
                                          double smallSignalGain,
                                          int saturationIntensity,
@@ -31,7 +31,7 @@ public class SatinTest {
                 .findFirst()
                 .ifPresentOrElse(g ->
                         assertAll(
-                                () -> assertEquals(0, new BigDecimal(g.outputPower()).setScale(3, HALF_UP).compareTo(new BigDecimal(outputPower).setScale(3, HALF_UP))),
+                                () -> assertEquals(0, BigDecimal.valueOf(g.outputPower()).setScale(3, HALF_UP).compareTo(BigDecimal.valueOf(outputPower).setScale(3, HALF_UP))),
                                 () -> assertEquals(0, g.logOutputPowerDividedByInputPower().compareTo(logOutputPowerDividedByInputPower)),
                                 () -> assertEquals(0, g.outputPowerMinusInputPower().compareTo(outputPowerMinusInputPower))
                         ), Assertions::fail);
