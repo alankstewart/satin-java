@@ -83,16 +83,14 @@ public final class Satin {
     }
 
     private List<Integer> getInputPowers() throws IOException, URISyntaxException {
-        final var url = getClass().getClassLoader().getResource("pin.dat");
-        Objects.requireNonNull(url, "Failed to find pin.dat");
-        return Files.lines(Paths.get(url.toURI())).mapToInt(Integer::parseInt).boxed().collect(toUnmodifiableList());
+        final var url = getClass().getClassLoader().getResource("pin.dat").toURI();
+        return Files.lines(Paths.get(url)).mapToInt(Integer::parseInt).boxed().collect(toUnmodifiableList());
     }
 
     private List<Laser> getLaserData() throws IOException, URISyntaxException {
-        final var url = getClass().getClassLoader().getResource("laser.dat");
-        Objects.requireNonNull(url, "Failed to find laser.dat");
+        final var url = getClass().getClassLoader().getResource("laser.dat").toURI();
         final var p = Pattern.compile("((md|pi)[a-z]{2}\\.out)\\s+([0-9]{2}\\.[0-9])\\s+([0-9]+)\\s+(?i:\\2)");
-        return Files.lines(Paths.get(url.toURI()))
+        return Files.lines(Paths.get(url))
                 .map(p::matcher)
                 .filter(Matcher::matches)
                 .map(this::getLaser)
