@@ -25,8 +25,7 @@ public class SatinTest {
                                          BigDecimal logOutputPowerDividedByInputPower,
                                          BigDecimal outputPowerMinusInputPower) {
         var satin = new Satin();
-        var gaussians = satin.gaussianCalculation(inputPower, smallSignalGain);
-        gaussians.parallelStream()
+        satin.gaussianCalculation(inputPower, smallSignalGain).parallelStream()
                 .filter(g -> g.saturationIntensity() == saturationIntensity)
                 .findFirst()
                 .ifPresentOrElse(g ->
