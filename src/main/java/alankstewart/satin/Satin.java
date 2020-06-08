@@ -7,13 +7,13 @@ package alankstewart.satin;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.format.DateTimeFormatter;
 import java.util.Formatter;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -30,7 +30,6 @@ import static java.lang.Math.pow;
 import static java.lang.System.nanoTime;
 import static java.math.BigDecimal.valueOf;
 import static java.math.RoundingMode.HALF_UP;
-import static java.nio.charset.Charset.defaultCharset;
 import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 import static java.nio.file.StandardOpenOption.WRITE;
@@ -41,6 +40,7 @@ public final class Satin {
 
     private static final Path PATH = Paths.get(System.getProperty("user.dir"));
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("d MMM yyyy HH:mm:ss.SSS");
+    private static final Pattern LASER_PATTERN = Pattern.compile("((md|pi)[a-z]{2}\\.out)\\s+([0-9]{2}\\.[0-9])\\s+([0-9]+)\\s+(?i:\\2)");
     private static final double RAD = 0.18;
     private static final double RAD2 = pow(RAD, 2);
     private static final double W1 = 0.3;
@@ -83,28 +83,24 @@ public final class Satin {
     }
 
     private List<Integer> getInputPowers() throws IOException, URISyntaxException {
-        final var url = getClass().getClassLoader().getResource("pin.dat").toURI();
-        return Files.lines(Paths.get(url)).mapToInt(Integer::parseInt).boxed().collect(toUnmodifiableList());
-    }
-
-    private List<Laser> getLaserData() throws IOException, URISyntaxException {
-        final var url = getClass().getClassLoader().getResource("laser.dat").toURI();
-        final var p = Pattern.compile("((md|pi)[a-z]{2}\\.out)\\s+([0-9]{2}\\.[0-9])\\s+([0-9]+)\\s+(?i:\\2)");
-        return Files.lines(Paths.get(url))
-                .map(p::matcher)
-                .filter(Matcher::matches)
-                .map(this::getLaser)
+        return Files.lines(Path.of(getClass().getClassLoader().getResource("pin.dat").toURI()))
+                .mapToInt(Integer::parseInt)
+                .boxed()
                 .collect(toUnmodifiableList());
     }
 
-    private Laser getLaser(Matcher m) {
-        return new Laser(m.group(1), parseDouble(m.group(3)), parseInt(m.group(4)), m.group(2));
+    private List<Laser> getLaserData() throws IOException, URISyntaxException {
+        return Files.lines(Path.of(getClass().getClassLoader().getResource("laser.dat").toURI()))
+                .map(LASER_PATTERN::matcher)
+                .filter(Matcher::matches)
+                .map(m -> new Laser(m.group(1), parseDouble(m.group(3)), parseInt(m.group(4)), m.group(2)))
+                .collect(toUnmodifiableList());
     }
 
     private File process(final List<Integer> inputPowers, final Laser laser) {
         final var path = PATH.resolve(laser.outputFile());
         final var header = "Start date: %s\n\nGaussian Beam\n\nPressure in Main Discharge = %skPa\nSmall-signal Gain = %s\nCO2 via %s\n\nPin\t\tPout\t\tSat. Int\tln(Pout/Pin\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n";
-        try (final var writer = Files.newBufferedWriter(path, defaultCharset(), CREATE, WRITE, TRUNCATE_EXISTING);
+        try (final var writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8, CREATE, WRITE, TRUNCATE_EXISTING);
              final var formatter = new Formatter(writer)) {
             formatter.format(header,
                     now().format(DATE_TIME_FORMATTER),
