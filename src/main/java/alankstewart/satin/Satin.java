@@ -75,7 +75,7 @@ public final class Satin {
         final var executorService = Executors.newCachedThreadPool();
         try {
             for (final var future : executorService.invokeAll(tasks)) {
-                future.get();
+                System.out.println("Created " + future.get().getAbsolutePath());
             }
         } finally {
             executorService.shutdown();
