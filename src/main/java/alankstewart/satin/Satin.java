@@ -24,15 +24,11 @@ import java.util.stream.IntStream;
 
 import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;
-import static java.lang.Math.PI;
-import static java.lang.Math.exp;
-import static java.lang.Math.pow;
+import static java.lang.Math.*;
 import static java.lang.System.nanoTime;
 import static java.math.BigDecimal.valueOf;
 import static java.math.RoundingMode.HALF_UP;
-import static java.nio.file.StandardOpenOption.CREATE;
-import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
-import static java.nio.file.StandardOpenOption.WRITE;
+import static java.nio.file.StandardOpenOption.*;
 import static java.time.LocalDateTime.now;
 import static java.util.stream.Collectors.toUnmodifiableList;
 
@@ -136,13 +132,9 @@ public final class Satin {
                 .mapToObj(saturationIntensity -> {
                     var expr3 = saturationIntensity * expr2;
                     var outputPower = DoubleStream.iterate(0, r -> r < 0.5, r -> r + DR)
-                            .map(r -> {
-                                var outputIntensity = inputIntensity * exp(-2 * pow(r, 2) / RAD2);
-                                for (var j = 0; j < INCR; j++) {
-                                    outputIntensity *= 1 + expr3 / (saturationIntensity + outputIntensity) - expr1[j];
-                                }
-                                return outputIntensity * EXPR * r;
-                            })
+                            .map(r -> IntStream.range(0, INCR)
+                                    .mapToDouble(j -> (double) j)
+                                    .reduce((inputIntensity * exp(-2 * pow(r, 2) / RAD2)), (outputIntensity, j) -> outputIntensity *= 1 + expr3 / (saturationIntensity + outputIntensity) - expr1[(int) j]) * EXPR * r)
                             .sum();
                     return new Gaussian(inputPower, outputPower, saturationIntensity);
                 })
