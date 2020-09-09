@@ -134,7 +134,7 @@ public final class Satin {
                     var outputPower = DoubleStream.iterate(0, r -> r < 0.5, r -> r + DR)
                             .map(r -> IntStream.range(0, INCR)
                                     .mapToDouble(j -> (double) j)
-                                    .reduce((inputIntensity * exp(-2 * pow(r, 2) / RAD2)), (outputIntensity, j) -> outputIntensity *= 1 + expr3 / (saturationIntensity + outputIntensity) - expr1[(int) j]) * EXPR * r)
+                                    .reduce(inputIntensity * exp(-2 * pow(r, 2) / RAD2), (outputIntensity, j) -> outputIntensity *= 1 + expr3 / (saturationIntensity + outputIntensity) - expr1[(int) j]) * EXPR * r)
                             .sum();
                     return new Gaussian(inputPower, outputPower, saturationIntensity);
                 })
