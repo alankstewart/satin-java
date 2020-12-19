@@ -2,4 +2,4 @@
 
 [![Satin CI Actions Status](https://github.com/alankstewart/satin-java/workflows/Satin%20CI/badge.svg)](https://github.com/alankstewart/satin-java/actions)
 
-CO2 Laser Saturation Intensity calculation. Requires Java 14 and has no other dependencies.
+CO2 Laser Saturation Intensity calculation. Requires Java 15 and has no other dependencies.
