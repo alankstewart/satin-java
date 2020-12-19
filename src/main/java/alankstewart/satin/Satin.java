@@ -7,7 +7,6 @@ package alankstewart.satin;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -24,11 +23,16 @@ import java.util.stream.IntStream;
 
 import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;
-import static java.lang.Math.*;
+import static java.lang.Math.PI;
+import static java.lang.Math.exp;
+import static java.lang.Math.pow;
 import static java.lang.System.nanoTime;
 import static java.math.BigDecimal.valueOf;
 import static java.math.RoundingMode.HALF_UP;
-import static java.nio.file.StandardOpenOption.*;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.nio.file.StandardOpenOption.CREATE;
+import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
+import static java.nio.file.StandardOpenOption.WRITE;
 import static java.time.LocalDateTime.now;
 import static java.util.stream.Collectors.toUnmodifiableList;
 
@@ -96,7 +100,7 @@ public final class Satin {
     private File process(final List<Integer> inputPowers, final Laser laser) {
         final var path = PATH.resolve(laser.outputFile());
         final var header = "Start date: %s\n\nGaussian Beam\n\nPressure in Main Discharge = %skPa\nSmall-signal Gain = %s\nCO2 via %s\n\nPin\t\tPout\t\tSat. Int\tln(Pout/Pin\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n";
-        try (final var writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8, CREATE, WRITE, TRUNCATE_EXISTING);
+        try (final var writer = Files.newBufferedWriter(path, UTF_8, CREATE, WRITE, TRUNCATE_EXISTING);
              final var formatter = new Formatter(writer)) {
             formatter.format(header,
                     now().format(DATE_TIME_FORMATTER),
