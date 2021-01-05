@@ -21,7 +21,7 @@ public class SatinTest {
     public void shouldCalculateGaussians(int inputPower,
                                          double smallSignalGain,
                                          int saturationIntensity,
-                                         double outputPower,
+                                         BigDecimal outputPower,
                                          BigDecimal logOutputPowerDividedByInputPower,
                                          BigDecimal outputPowerMinusInputPower) {
         var satin = new Satin();
@@ -30,7 +30,7 @@ public class SatinTest {
                 .findFirst()
                 .ifPresentOrElse(g ->
                         assertAll(
-                                () -> assertEquals(0, BigDecimal.valueOf(g.outputPower()).setScale(3, HALF_UP).compareTo(BigDecimal.valueOf(outputPower).setScale(3, HALF_UP))),
+                                () -> assertEquals(0, BigDecimal.valueOf(g.outputPower()).setScale(3, HALF_UP).compareTo(outputPower)),
                                 () -> assertEquals(0, g.logOutputPowerDividedByInputPower().compareTo(logOutputPowerDividedByInputPower)),
                                 () -> assertEquals(0, g.outputPowerMinusInputPower().compareTo(outputPowerMinusInputPower))
                         ), Assertions::fail);
