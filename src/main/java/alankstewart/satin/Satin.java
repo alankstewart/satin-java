@@ -113,13 +113,17 @@ public final class Satin {
                     laser.smallSignalGain(),
                     laser.carbonDioxide());
 
-            inputPowers.forEach(inputPower -> gaussianCalculation(inputPower, laser.smallSignalGain())
-                    .forEach(gaussian -> formatter.format("%d\t\t%s\t\t%d\t\t%s\t\t%s\n",
-                            gaussian.inputPower(),
-                            gaussian.outputPower(),
-                            gaussian.saturationIntensity(),
-                            gaussian.logOutputPowerDividedByInputPower(),
-                            gaussian.outputPowerMinusInputPower())));
+            var gaussians = inputPowers.parallelStream()
+                    .map(inputPower -> gaussianCalculation(inputPower, laser.smallSignalGain()))
+                    .flatMap(List::stream)
+                    .sorted()
+                    .toList();
+            gaussians.forEach(gaussian -> formatter.format("%d\t\t%s\t\t%d\t\t%s\t\t%s\n",
+                    gaussian.inputPower(),
+                    gaussian.outputPower(),
+                    gaussian.saturationIntensity(),
+                    gaussian.logOutputPowerDividedByInputPower(),
+                    gaussian.outputPowerMinusInputPower()));
 
             formatter.format("\nEnd date: %s\n", now().format(DATE_TIME_FORMATTER));
             formatter.flush();
