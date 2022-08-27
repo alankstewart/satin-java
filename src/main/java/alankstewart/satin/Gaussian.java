@@ -6,7 +6,7 @@ import static java.lang.Math.log;
 import static java.math.BigDecimal.valueOf;
 import static java.math.RoundingMode.HALF_UP;
 
-final record Gaussian(int inputPower, double outputPower, int saturationIntensity) {
+record Gaussian(int inputPower, double outputPower, int saturationIntensity) {
 
     public BigDecimal logOutputPowerDividedByInputPower() {
         return valueOf(log(outputPower / inputPower)).setScale(3, HALF_UP);

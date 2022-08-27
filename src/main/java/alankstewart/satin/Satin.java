@@ -23,18 +23,14 @@ import java.util.stream.IntStream;
 
 import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;
-import static java.lang.Math.PI;
-import static java.lang.Math.exp;
-import static java.lang.Math.pow;
+import static java.lang.Math.*;
 import static java.lang.System.nanoTime;
 import static java.math.BigDecimal.valueOf;
 import static java.math.RoundingMode.HALF_UP;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.nio.file.StandardOpenOption.CREATE;
-import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
-import static java.nio.file.StandardOpenOption.WRITE;
+import static java.nio.file.StandardOpenOption.*;
 import static java.time.LocalDateTime.now;
-import static java.util.stream.Collectors.toUnmodifiableList;
+import static java.util.Objects.requireNonNull;
 
 public final class Satin {
 
@@ -70,7 +66,7 @@ public final class Satin {
         final var tasks = getLaserData()
                 .parallelStream()
                 .map(laser -> (Callable<File>) () -> process(inputPowers, laser))
-                .collect(toUnmodifiableList());
+                .toList();
 
         final var executorService = Executors.newCachedThreadPool();
         try {
@@ -83,18 +79,18 @@ public final class Satin {
     }
 
     private List<Integer> getInputPowers() throws IOException, URISyntaxException {
-        return Files.lines(Path.of(getClass().getClassLoader().getResource("pin.dat").toURI()))
+        return Files.lines(Path.of(requireNonNull(getClass().getClassLoader().getResource("pin.dat")).toURI()))
                 .mapToInt(Integer::parseInt)
                 .boxed()
-                .collect(toUnmodifiableList());
+                .toList();
     }
 
     private List<Laser> getLaserData() throws IOException, URISyntaxException {
-        return Files.lines(Path.of(getClass().getClassLoader().getResource("laser.dat").toURI()))
+        return Files.lines(Path.of(requireNonNull(getClass().getClassLoader().getResource("laser.dat")).toURI()))
                 .map(LASER_PATTERN::matcher)
                 .filter(Matcher::matches)
                 .map(m -> new Laser(m.group(1), parseDouble(m.group(3)), parseInt(m.group(4)), m.group(2)))
-                .collect(toUnmodifiableList());
+                .toList();
     }
 
     private File process(final List<Integer> inputPowers, final Laser laser) {
@@ -141,6 +137,6 @@ public final class Satin {
                             .sum();
                     return new Gaussian(inputPower, outputPower, saturationIntensity);
                 })
-                .collect(toUnmodifiableList());
+                .toList();
     }
 }
