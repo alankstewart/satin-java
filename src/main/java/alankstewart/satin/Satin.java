@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.DoubleStream;
@@ -61,7 +62,7 @@ public final class Satin {
         }
     }
 
-    private void calculate() throws IOException, URISyntaxException, InterruptedException, ExecutionException {
+    private void calculate() throws IOException, URISyntaxException, InterruptedException {
         final var inputPowers = getInputPowers();
         final var tasks = getLaserData()
                 .parallelStream()
@@ -70,9 +71,9 @@ public final class Satin {
 
         final var executorService = Executors.newCachedThreadPool();
         try {
-            for (final var future : executorService.invokeAll(tasks)) {
-                System.out.println("Created " + future.get().getAbsolutePath());
-            }
+            executorService.invokeAll(tasks).parallelStream()
+                    .map(this::getOutputFilePath)
+                    .forEach(path -> System.out.println("Created " + path));
         } finally {
             executorService.shutdown();
         }
@@ -91,6 +92,14 @@ public final class Satin {
                 .filter(Matcher::matches)
                 .map(m -> new Laser(m.group(1), parseDouble(m.group(3)), parseInt(m.group(4)), m.group(2)))
                 .toList();
+    }
+
+    private String getOutputFilePath(Future<File> future) {
+        try {
+            return future.get().getAbsolutePath();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private File process(final List<Integer> inputPowers, final Laser laser) {

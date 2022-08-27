@@ -1,0 +1,3 @@
+        getLaserData().parallelStream()
+                .map(laser -> process(inputPowers, laser))
+                .forEach(path -> System.out.println("Created " + path));
