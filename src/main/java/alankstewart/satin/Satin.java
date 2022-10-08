@@ -142,14 +142,18 @@ public final class Satin {
         final var inputIntensity = 2 * inputPower / AREA;
 
         return IntStream.iterate(10000, i -> i <= 25000, i -> i + 1000)
-                .mapToObj(saturationIntensity -> {
-                    var expr3 = saturationIntensity * expr2;
-                    var outputPower = DoubleStream.iterate(0, r -> r < 0.5, r -> r + DR)
-                            .map(r -> DoubleStream.iterate(0, j -> j < INCR, j -> j + 1)
-                                    .reduce(inputIntensity * exp(-2 * pow(r, 2) / RAD2), (outputIntensity, j) -> outputIntensity * (1 + expr3 / (saturationIntensity + outputIntensity) - expr1[(int) j])) * EXPR * r)
-                            .sum();
-                    return new Gaussian(inputPower, outputPower, saturationIntensity);
-                })
+                .mapToObj(saturationIntensity -> new Gaussian(
+                        inputPower,
+                        calculateOutputPower(expr1, expr2, inputIntensity, saturationIntensity),
+                        saturationIntensity))
                 .toList();
+    }
+
+    private double calculateOutputPower(double[] expr1, double expr2, double inputIntensity, int saturationIntensity) {
+        var expr3 = saturationIntensity * expr2;
+        return DoubleStream.iterate(0, r -> r < 0.5, r -> r + DR)
+                .map(r -> DoubleStream.iterate(0, j -> j < INCR, j -> j + 1)
+                        .reduce(inputIntensity * exp(-2 * pow(r, 2) / RAD2), (outputIntensity, j) -> outputIntensity * (1 + expr3 / (saturationIntensity + outputIntensity) - expr1[(int) j])) * EXPR * r)
+                .sum();
     }
 }
