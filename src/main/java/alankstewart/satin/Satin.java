@@ -21,6 +21,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;
@@ -69,29 +70,34 @@ public final class Satin {
                 .map(laser -> (Callable<File>) () -> process(inputPowers, laser))
                 .toList();
 
-        final var executorService = Executors.newCachedThreadPool();
-        try {
+        try (var executorService = Executors.newCachedThreadPool()) {
             executorService.invokeAll(tasks).parallelStream()
                     .map(this::getOutputFilePath)
                     .forEach(path -> System.out.println("Created " + path));
-        } finally {
-            executorService.shutdown();
         }
     }
 
     private List<Integer> getInputPowers() throws IOException, URISyntaxException {
-        return Files.lines(Path.of(requireNonNull(getClass().getClassLoader().getResource("pin.dat")).toURI()))
-                .mapToInt(Integer::parseInt)
-                .boxed()
-                .toList();
+        try (var lines = getLines("pin.dat")) {
+            return lines
+                    .mapToInt(Integer::parseInt)
+                    .boxed()
+                    .toList();
+        }
     }
 
     private List<Laser> getLaserData() throws IOException, URISyntaxException {
-        return Files.lines(Path.of(requireNonNull(getClass().getClassLoader().getResource("laser.dat")).toURI()))
-                .map(LASER_PATTERN::matcher)
-                .filter(Matcher::matches)
-                .map(m -> new Laser(m.group(1), parseDouble(m.group(3)), parseInt(m.group(4)), m.group(2)))
-                .toList();
+        try (var lines = getLines("laser.dat")) {
+            return lines
+                    .map(LASER_PATTERN::matcher)
+                    .filter(Matcher::matches)
+                    .map(m -> new Laser(m.group(1), parseDouble(m.group(3)), parseInt(m.group(4)), m.group(2)))
+                    .toList();
+        }
+    }
+
+    private Stream<String> getLines(String name) throws IOException, URISyntaxException {
+        return Files.lines(Path.of(requireNonNull(getClass().getClassLoader().getResource(name)).toURI()));
     }
 
     private String getOutputFilePath(Future<File> future) {
