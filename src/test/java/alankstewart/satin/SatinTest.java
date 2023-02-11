@@ -14,11 +14,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * Created by alanstewart on 26/03/15.
  */
-public class SatinTest {
+class SatinTest {
 
     @ParameterizedTest
     @CsvFileSource(resources = "/satin.csv")
-    public void shouldCalculateGaussians(int inputPower,
+    void shouldCalculateGaussians(int inputPower,
                                          double smallSignalGain,
                                          int saturationIntensity,
                                          BigDecimal outputPower,

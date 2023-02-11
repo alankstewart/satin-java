@@ -4,7 +4,6 @@
 
 package alankstewart.satin;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
@@ -17,6 +16,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.DoubleStream;
@@ -36,8 +36,10 @@ import static java.util.Objects.requireNonNull;
 
 public final class Satin {
 
+    private static final Logger LOGGER = Logger.getLogger(Satin.class.getName());
+
     private static final Path PATH = Paths.get(System.getProperty("user.dir"));
-    private static final Pattern LASER_PATTERN = Pattern.compile("((md|pi)[a-z]{2}\\.out)\\s+([0-9]{2}\\.[0-9])\\s+([0-9]+)\\s+(?i:\\2)");
+    private static final Pattern LASER_PATTERN = Pattern.compile("((md|pi)[a-z]{2}\\.out)\\s+(\\d{2}\\.\\d)\\s+(\\d+)\\s+(?i:\\2)?");
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("d MMM yyyy HH:mm:ss.SSS");
     private static final double RAD = 0.18;
     private static final double RAD2 = pow(RAD, 2);
@@ -56,10 +58,14 @@ public final class Satin {
         final var satin = new Satin();
         try {
             satin.calculate();
-        } catch (final Exception e) {
-            System.err.println(e.getMessage());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            LOGGER.severe(e.getMessage());
+        } catch (IOException | URISyntaxException e) {
+            LOGGER.severe(e.getMessage());
         } finally {
-            System.out.printf("The time was %.3f seconds\n", valueOf(nanoTime() - start).divide(valueOf(1E9), 3, HALF_UP));
+            var msg = String.format("The time was %.3f seconds%n", valueOf(nanoTime() - start).divide(valueOf(1E9), 3, HALF_UP));
+            LOGGER.info(msg);
         }
     }
 
@@ -67,13 +73,13 @@ public final class Satin {
         final var inputPowers = getInputPowers();
         final var tasks = getLaserData()
                 .parallelStream()
-                .map(laser -> (Callable<File>) () -> process(inputPowers, laser))
+                .map(laser -> (Callable<String>) () -> process(inputPowers, laser))
                 .toList();
 
         try (var executorService = Executors.newCachedThreadPool()) {
             executorService.invokeAll(tasks).parallelStream()
                     .map(this::getOutputFilePath)
-                    .forEach(path -> System.out.println("Created " + path));
+                    .forEach(path -> LOGGER.info("Created " + path));
         }
     }
 
@@ -100,17 +106,20 @@ public final class Satin {
         return Files.lines(Path.of(requireNonNull(getClass().getClassLoader().getResource(name)).toURI()));
     }
 
-    private String getOutputFilePath(Future<File> future) {
+    private String getOutputFilePath(Future<String> future) {
         try {
-            return future.get().getAbsolutePath();
-        } catch (InterruptedException | ExecutionException e) {
+            return future.get();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        } catch (ExecutionException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private File process(final List<Integer> inputPowers, final Laser laser) {
+    private String process(final List<Integer> inputPowers, final Laser laser) {
         final var path = PATH.resolve(laser.outputFile());
-        final var header = "Start date: %s\n\nGaussian Beam\n\nPressure in Main Discharge = %skPa\nSmall-signal Gain = %s\nCO2 via %s\n\nPin\t\tPout\t\tSat. Int\tln(Pout/Pin)\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n";
+        final var header = "Start date: %s%n%nGaussian Beam%n%nPressure in Main Discharge = %skPa%nSmall-signal Gain = %s%nCO2 via %s%n%nPin\t\tPout\t\tSat. Int\tln(Pout/Pin)\tPout-Pin%n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)%n";
         try (final var writer = Files.newBufferedWriter(path, UTF_8, CREATE, WRITE, TRUNCATE_EXISTING);
              final var formatter = new Formatter(writer)) {
             formatter.format(header,
@@ -124,16 +133,16 @@ public final class Satin {
                     .flatMap(List::stream)
                     .sorted()
                     .sequential()
-                    .forEach(gaussian -> formatter.format("%d\t\t%s\t\t%d\t\t%s\t\t%s\n",
+                    .forEach(gaussian -> formatter.format("%d\t\t%s\t\t%d\t\t%s\t\t%s%n",
                             gaussian.inputPower(),
                             gaussian.outputPower(),
                             gaussian.saturationIntensity(),
                             gaussian.logOutputPowerDividedByInputPower(),
                             gaussian.outputPowerMinusInputPower()));
 
-            formatter.format("\nEnd date: %s\n", now().format(DATE_TIME_FORMATTER));
+            formatter.format("%nEnd date: %s%n", now().format(DATE_TIME_FORMATTER));
             formatter.flush();
-            return path.toFile();
+            return path.toFile().getAbsolutePath();
         } catch (final IOException e) {
             throw new RuntimeException(e);
         }
