@@ -41,6 +41,7 @@ public final class Satin {
     private static final Path PATH = Paths.get(System.getProperty("user.dir"));
     private static final Pattern LASER_PATTERN = Pattern.compile("((md|pi)[a-z]{2}\\.out)\\s+(\\d{2}\\.\\d)\\s+(\\d+)\\s+(?i:\\2)?");
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("d MMM yyyy HH:mm:ss.SSS");
+    private static final String COLUMN_FORMAT = "%-8s %-19s %-12s %-13s %-9s%n";
     private static final double RAD = 0.18;
     private static final double RAD2 = pow(RAD, 2);
     private static final double W1 = 0.3;
@@ -119,29 +120,30 @@ public final class Satin {
 
     private String process(final List<Integer> inputPowers, final Laser laser) {
         final var path = PATH.resolve(laser.outputFile());
-        final var header = "Start date: %s%n%nGaussian Beam%n%nPressure in Main Discharge = %skPa%nSmall-signal Gain = %s%nCO2 via %s%n%nPin\t\tPout\t\tSat. Int\tln(Pout/Pin)\tPout-Pin%n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)%n";
+        final var header = "Start date: %s%n%nGaussian Beam%n%nPressure in Main Discharge = %skPa%nSmall-signal Gain = %s%nCO2 via %s%n%n";
         try (final var writer = Files.newBufferedWriter(path, UTF_8, CREATE, WRITE, TRUNCATE_EXISTING);
              final var formatter = new Formatter(writer)) {
             formatter.format(header,
-                    now().format(DATE_TIME_FORMATTER),
-                    laser.dischargePressure(),
-                    laser.smallSignalGain(),
-                    laser.carbonDioxide());
-
+                            now().format(DATE_TIME_FORMATTER),
+                            laser.dischargePressure(),
+                            laser.smallSignalGain(),
+                            laser.carbonDioxide())
+                    .format(COLUMN_FORMAT, "Pin", "Pout", "Sat. Int", "ln(Pout/Pin)", "Pout-Pin")
+                    .format(COLUMN_FORMAT, "(watts)", "(watts)", "(watts/cm2)", "", "(watts)");
             inputPowers.parallelStream()
                     .map(inputPower -> gaussianCalculation(inputPower, laser.smallSignalGain()))
                     .flatMap(List::stream)
                     .sorted()
                     .sequential()
-                    .forEach(gaussian -> formatter.format("%d\t\t%s\t\t%d\t\t%s\t\t%s%n",
+                    .forEach(gaussian -> formatter.format(COLUMN_FORMAT,
                             gaussian.inputPower(),
                             gaussian.outputPower(),
                             gaussian.saturationIntensity(),
                             gaussian.logOutputPowerDividedByInputPower(),
                             gaussian.outputPowerMinusInputPower()));
 
-            formatter.format("%nEnd date: %s%n", now().format(DATE_TIME_FORMATTER));
-            formatter.flush();
+            formatter.format("%nEnd date: %s%n", now().format(DATE_TIME_FORMATTER))
+                    .flush();
             return path.toFile().getAbsolutePath();
         } catch (final IOException e) {
             throw new RuntimeException(e);
