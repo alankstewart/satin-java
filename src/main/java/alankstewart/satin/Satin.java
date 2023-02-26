@@ -41,6 +41,7 @@ public final class Satin {
     private static final Path PATH = Paths.get(System.getProperty("user.dir"));
     private static final Pattern LASER_PATTERN = Pattern.compile("((md|pi)[a-z]{2}\\.out)\\s+(\\d{2}\\.\\d)\\s+(\\d+)\\s+(?i:\\2)?");
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("d MMM yyyy HH:mm:ss.SSS");
+    private static final String FILE_HEADER = "Start date: %s%n%nGaussian Beam%n%nPressure in Main Discharge = %skPa%nSmall-signal Gain = %s%nCO2 via %s%n%n";
     private static final String COLUMN_FORMAT = "%-8s %-19s %-12s %-13s %-9s%n";
     private static final double RAD = 0.18;
     private static final double RAD2 = pow(RAD, 2);
@@ -120,10 +121,9 @@ public final class Satin {
 
     private String process(final List<Integer> inputPowers, final Laser laser) {
         final var path = PATH.resolve(laser.outputFile());
-        final var header = "Start date: %s%n%nGaussian Beam%n%nPressure in Main Discharge = %skPa%nSmall-signal Gain = %s%nCO2 via %s%n%n";
-        try (final var writer = Files.newBufferedWriter(path, UTF_8, CREATE, WRITE, TRUNCATE_EXISTING);
-             final var formatter = new Formatter(writer)) {
-            formatter.format(header,
+        final var sb = new StringBuilder();
+        try (final var formatter = new Formatter(sb)) {
+            formatter.format(FILE_HEADER,
                             now().format(DATE_TIME_FORMATTER),
                             laser.dischargePressure(),
                             laser.smallSignalGain(),
@@ -144,7 +144,7 @@ public final class Satin {
 
             formatter.format("%nEnd date: %s%n", now().format(DATE_TIME_FORMATTER))
                     .flush();
-            return path.toFile().getAbsolutePath();
+            return Files.writeString(path, sb, UTF_8, CREATE, WRITE, TRUNCATE_EXISTING).toFile().getAbsolutePath();
         } catch (final IOException e) {
             throw new RuntimeException(e);
         }
