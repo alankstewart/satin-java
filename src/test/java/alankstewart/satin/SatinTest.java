@@ -17,13 +17,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class SatinTest {
 
     @ParameterizedTest
-    @CsvFileSource(resources = "/satin.csv")
+    @CsvFileSource(resources = "/satin-all.csv")
     void shouldCalculateGaussians(int inputPower,
-                                         double smallSignalGain,
-                                         int saturationIntensity,
-                                         BigDecimal outputPower,
-                                         BigDecimal logOutputPowerDividedByInputPower,
-                                         BigDecimal outputPowerMinusInputPower) {
+                                  double smallSignalGain,
+                                  int saturationIntensity,
+                                  BigDecimal outputPower,
+                                  BigDecimal logOutputPowerDividedByInputPower,
+                                  BigDecimal outputPowerMinusInputPower) {
         var satin = new Satin();
         satin.gaussianCalculation(inputPower, smallSignalGain).parallelStream()
                 .filter(g -> g.saturationIntensity() == saturationIntensity)
