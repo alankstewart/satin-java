@@ -51,10 +51,10 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.10.1</version>
                 <configuration>
-                    <release>20</release>
-                    <compilerArgs>--enable-preview</compilerArgs>
-                    <source>20</source>
-                    <target>20</target>
+                    <release>19</release>
+<!--                    <compilerArgs>&#45;&#45;enable-preview</compilerArgs>-->
+                    <source>19</source>
+                    <target>19</target>
                 </configuration>
             </plugin>
             <plugin>
