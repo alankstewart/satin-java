@@ -42,7 +42,7 @@ public final class Satin {
     private static final Pattern LASER_PATTERN = Pattern.compile("((md|pi)[a-z]{2}\\.out)\\s+(\\d{2}\\.\\d)\\s+(\\d+)\\s+(?i:\\2)?");
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("d MMM yyyy HH:mm:ss.SSS");
     private static final String FILE_HEADER = "Start date: %s%n%nGaussian Beam%n%nPressure in Main Discharge = %skPa%nSmall-signal Gain = %s%nCO2 via %s%n%n";
-    private static final String COLUMN_FORMAT = "%-8s %-19s %-12s %-13s %-9s%n";
+    private static final String COLUMN_FORMAT = "%7s   %-19s  %-12s  %-13s  %9s%n";
     private static final double RAD = 0.18;
     private static final double RAD2 = pow(RAD, 2);
     private static final double W1 = 0.3;
