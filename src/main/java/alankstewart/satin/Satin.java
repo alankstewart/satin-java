@@ -154,10 +154,8 @@ public final class Satin {
                 .mapToDouble(i -> ((double) i - INCR / 2) / 25)
                 .map(zInc -> 2 * zInc * DZ / (Z12 + pow(zInc, 2)))
                 .toArray();
-
         return IntStream.iterate(10000, i -> i <= 25000, i -> i + 1000)
-                .mapToObj(saturationIntensity -> new Gaussian(
-                        inputPower,
+                .mapToObj(saturationIntensity -> new Gaussian(inputPower,
                         calculateOutputPower(inputPower, smallSignalGain, saturationIntensity, expr1),
                         saturationIntensity))
                 .toList();
@@ -165,11 +163,10 @@ public final class Satin {
 
     private double calculateOutputPower(int inputPower, double smallSignalGain, int saturationIntensity, double[] expr1) {
         final var inputIntensity = 2 * inputPower / AREA;
-        final var expr2 = saturationIntensity * smallSignalGain / 32000 * DZ;
         return DoubleStream.iterate(0, r -> r < 0.5, r -> r + DR)
                 .map(r -> DoubleStream.iterate(0, j -> j < INCR, j -> j + 1)
                         .reduce(inputIntensity * exp(-2 * pow(r, 2) / RAD2), (outputIntensity, j) ->
-                                outputIntensity * (1 + expr2 / (saturationIntensity + outputIntensity) - expr1[(int) j])) * EXPR * r)
+                                outputIntensity * (1 + (saturationIntensity * smallSignalGain / 32000 * DZ) / (saturationIntensity + outputIntensity) - expr1[(int) j])) * EXPR * r)
                 .sum();
     }
 }
