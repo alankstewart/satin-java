@@ -151,7 +151,7 @@ public final class Satin {
 
     List<Gaussian> gaussianCalculation(final int inputPower, final double smallSignalGain) {
         final var expr1 = IntStream.range(0, INCR)
-                .mapToDouble(i -> ((double) i - INCR / 2) / 25)
+                .mapToDouble(i -> ((double) i - (INCR >> 1)) / 25)
                 .map(zInc -> 2 * zInc * DZ / (Z12 + pow(zInc, 2)))
                 .toArray();
         return IntStream.iterate(10000, i -> i <= 25000, i -> i + 1000)
