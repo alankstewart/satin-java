@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class SatinTest {
 
     @ParameterizedTest
-    @CsvFileSource(resources = "/satin.csv")
+    @CsvFileSource(resources = "/satin-all.csv")
     void shouldCalculateGaussians(int inputPower,
                                   double smallSignalGain,
                                   int saturationIntensity,
