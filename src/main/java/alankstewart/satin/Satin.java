@@ -4,6 +4,7 @@
 
 package alankstewart.satin;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
@@ -119,7 +120,7 @@ public final class Satin {
         }
     }
 
-    private String process(final List<Integer> inputPowers, final Laser laser) throws IOException {
+    private String process(final List<Integer> inputPowers, final Laser laser) throws FileNotFoundException {
         final var file = Paths.get(System.getProperty("user.dir")).resolve(laser.outputFile()).toFile();
         try (final var formatter = new Formatter(file)) {
             formatter.format("Start date: %s%n%nGaussian Beam%n%nPressure in Main Discharge = %skPa%nSmall-signal Gain = %s%nCO2 via %s%n%n",
