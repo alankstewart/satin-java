@@ -10,7 +10,6 @@ import static java.math.RoundingMode.HALF_UP;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-
 /**
  * Created by alanstewart on 26/03/15.
  */
