@@ -29,8 +29,6 @@ import static java.lang.Math.*;
 import static java.lang.System.nanoTime;
 import static java.math.BigDecimal.valueOf;
 import static java.math.RoundingMode.HALF_UP;
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.nio.file.StandardOpenOption.*;
 import static java.time.LocalDateTime.now;
 import static java.util.Objects.requireNonNull;
 
@@ -122,9 +120,8 @@ public final class Satin {
     }
 
     private String process(final List<Integer> inputPowers, final Laser laser) throws IOException {
-        final var path = Paths.get(System.getProperty("user.dir")).resolve(laser.outputFile());
-        final var sb = new StringBuilder();
-        try (final var formatter = new Formatter(sb)) {
+        final var file = Paths.get(System.getProperty("user.dir")).resolve(laser.outputFile()).toFile();
+        try (final var formatter = new Formatter(file)) {
             formatter.format("Start date: %s%n%nGaussian Beam%n%nPressure in Main Discharge = %skPa%nSmall-signal Gain = %s%nCO2 via %s%n%n",
                             now().format(DATE_TIME_FORMATTER),
                             laser.dischargePressure(),
@@ -145,7 +142,7 @@ public final class Satin {
                             gaussian.outputPowerMinusInputPower()));
 
             formatter.format("%nEnd date: %s%n", now().format(DATE_TIME_FORMATTER)).flush();
-            return Files.writeString(path, sb, UTF_8, CREATE, WRITE, TRUNCATE_EXISTING).toFile().getAbsolutePath();
+            return file.getAbsolutePath();
         }
     }
 
