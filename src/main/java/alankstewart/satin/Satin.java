@@ -121,7 +121,7 @@ public final class Satin {
         }
     }
 
-    private String process(final List<Integer> inputPowers, final Laser laser) {
+    private String process(final List<Integer> inputPowers, final Laser laser) throws IOException {
         final var path = Paths.get(System.getProperty("user.dir")).resolve(laser.outputFile());
         final var sb = new StringBuilder();
         try (final var formatter = new Formatter(sb)) {
@@ -146,8 +146,6 @@ public final class Satin {
 
             formatter.format("%nEnd date: %s%n", now().format(DATE_TIME_FORMATTER)).flush();
             return Files.writeString(path, sb, UTF_8, CREATE, WRITE, TRUNCATE_EXISTING).toFile().getAbsolutePath();
-        } catch (final IOException e) {
-            throw new RuntimeException(e);
         }
     }
 
