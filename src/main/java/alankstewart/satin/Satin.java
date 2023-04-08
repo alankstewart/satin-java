@@ -14,9 +14,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Formatter;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -75,13 +73,11 @@ public final class Satin {
         final var inputPowers = getInputPowers();
         final var tasks = getLaserData()
                 .parallelStream()
-                .map(laser -> (Callable<String>) () -> process(inputPowers, laser))
+                .map(laser -> (Callable<Void>) () -> process(inputPowers, laser))
                 .toList();
 
         try (var executorService = Executors.newCachedThreadPool()) {
-            executorService.invokeAll(tasks).parallelStream()
-                    .map(this::getOutputFilePath)
-                    .forEach(path -> LOGGER.info("Created " + path));
+            executorService.invokeAll(tasks);
         }
     }
 
@@ -109,18 +105,7 @@ public final class Satin {
         return Files.lines(Path.of(requireNonNull(getClass().getClassLoader().getResource(name)).toURI()));
     }
 
-    private String getOutputFilePath(Future<String> future) {
-        try {
-            return future.get();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException(e);
-        } catch (ExecutionException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private String process(final List<Integer> inputPowers, final Laser laser) throws FileNotFoundException {
+    private Void process(final List<Integer> inputPowers, final Laser laser) throws FileNotFoundException {
         final var file = Paths.get(System.getProperty("user.dir")).resolve(laser.outputFile()).toFile();
         try (final var formatter = new Formatter(file)) {
             formatter.format("Start date: %s%n%nGaussian Beam%n%nPressure in Main Discharge = %skPa%nSmall-signal Gain = %s%nCO2 via %s%n%n",
@@ -143,7 +128,7 @@ public final class Satin {
                             gaussian.outputPowerMinusInputPower()));
 
             formatter.format("%nEnd date: %s%n", now().format(DATE_TIME_FORMATTER)).flush();
-            return file.getAbsolutePath();
+            return null;
         }
     }
 
