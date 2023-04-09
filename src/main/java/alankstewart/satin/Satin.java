@@ -61,7 +61,7 @@ public final class Satin {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             LOGGER.severe(e.getMessage());
-        } catch (IOException | URISyntaxException e) {
+        } catch (Exception e) {
             LOGGER.severe(e.getMessage());
         } finally {
             var msg = String.format("The time was %.3f seconds%n", valueOf(nanoTime() - start).divide(valueOf(1E9), 3, HALF_UP));
