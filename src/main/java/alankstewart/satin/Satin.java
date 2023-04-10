@@ -48,7 +48,7 @@ public final class Satin {
             .map(zInc -> 2 * zInc * DZ / (Z12 + pow(zInc, 2)))
             .toArray();
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("d MMM yyyy HH:mm:ss.SSS");
-    private static final String COLUMN_FORMAT = "%7s   %-19s  %-12s  %-13s  %9s%n";
+    private static final String COLUMN_FORMAT = "%7s  %-19s  %-12s  %-13s  %9s%n";
 
     public static void main(final String[] args) {
         final var start = nanoTime();
