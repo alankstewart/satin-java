@@ -20,7 +20,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;
@@ -29,7 +28,6 @@ import static java.lang.System.nanoTime;
 import static java.math.BigDecimal.valueOf;
 import static java.math.RoundingMode.HALF_UP;
 import static java.time.LocalDateTime.now;
-import static java.util.Objects.requireNonNull;
 
 public final class Satin {
 
@@ -82,7 +80,7 @@ public final class Satin {
     }
 
     private List<Integer> getInputPowers() throws IOException, URISyntaxException {
-        try (var lines = getLines("pin.dat")) {
+        try (var lines = Files.lines(getPath("pin.dat"))) {
             return lines
                     .mapToInt(Integer::parseInt)
                     .boxed()
@@ -92,7 +90,7 @@ public final class Satin {
 
     private List<Laser> getLaserData() throws IOException, URISyntaxException {
         final var pattern = Pattern.compile("((md|pi)[a-z]{2}\\.out)\\s+(\\d{2}\\.\\d)\\s+(\\d+)\\s+(?i:\\2)?");
-        try (var lines = getLines("laser.dat")) {
+        try (var lines = Files.lines(getPath("laser.dat"))) {
             return lines
                     .map(pattern::matcher)
                     .filter(Matcher::matches)
@@ -101,8 +99,8 @@ public final class Satin {
         }
     }
 
-    private Stream<String> getLines(String name) throws IOException, URISyntaxException {
-        return Files.lines(Path.of(requireNonNull(getClass().getClassLoader().getResource(name)).toURI()));
+    private Path getPath(String fileName) throws URISyntaxException {
+        return Path.of(getClass().getClassLoader().getResource(fileName).toURI());
     }
 
     private Void process(final List<Integer> inputPowers, final Laser laser) throws FileNotFoundException {
