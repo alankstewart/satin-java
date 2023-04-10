@@ -115,8 +115,8 @@ public final class Satin {
             inputPowers.parallelStream()
                     .map(inputPower -> gaussianCalculation(inputPower, laser.smallSignalGain()))
                     .flatMap(List::stream)
-                    .sorted()
                     .sequential()
+                    .sorted()
                     .forEach(gaussian -> formatter.format(COLUMN_FORMAT,
                             gaussian.inputPower(),
                             gaussian.outputPower(),
