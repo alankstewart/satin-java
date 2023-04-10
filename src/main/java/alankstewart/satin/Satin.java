@@ -32,7 +32,6 @@ import static java.time.LocalDateTime.now;
 public final class Satin {
 
     private static final Logger LOGGER = Logger.getLogger(Satin.class.getName());
-
     private static final double RAD = 0.18;
     private static final double RAD2 = pow(RAD, 2);
     private static final double W1 = 0.3;
