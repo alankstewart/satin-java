@@ -114,6 +114,7 @@ public final class Satin {
                             laser.carbonDioxide())
                     .format(COLUMN_FORMAT, "Pin", "Pout", "Sat. Int", "ln(Pout/Pin)", "Pout-Pin")
                     .format(COLUMN_FORMAT, "(watts)", "(watts)", "(watts/cm2)", "", "(watts)");
+
             inputPowers.parallelStream()
                     .map(inputPower -> gaussianCalculation(inputPower, laser.smallSignalGain()))
                     .flatMap(List::stream)
