@@ -73,7 +73,7 @@ public final class Satin {
                 .map(laser -> (Callable<Void>) () -> process(inputPowers, laser))
                 .toList();
 
-        try (var executorService = Executors.newCachedThreadPool()) {
+        try (var executorService = Executors.newFixedThreadPool(8)) {
             executorService.invokeAll(tasks);
         }
     }
@@ -81,6 +81,7 @@ public final class Satin {
     private List<Integer> getInputPowers() throws IOException, URISyntaxException {
         try (var lines = Files.lines(getPath("pin.dat"))) {
             return lines
+                    .parallel()
                     .mapToInt(Integer::parseInt)
                     .boxed()
                     .toList();
@@ -91,6 +92,7 @@ public final class Satin {
         final var pattern = Pattern.compile("((md|pi)[a-z]{2}\\.out)\\s+(\\d{2}\\.\\d)\\s+(\\d+)\\s+(?i:\\2)?");
         try (var lines = Files.lines(getPath("laser.dat"))) {
             return lines
+                    .parallel()
                     .map(pattern::matcher)
                     .filter(Matcher::matches)
                     .map(m -> new Laser(m.group(1), parseDouble(m.group(3)), parseInt(m.group(4)), m.group(2)))
