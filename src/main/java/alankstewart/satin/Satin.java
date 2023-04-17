@@ -5,10 +5,6 @@
 package alankstewart.satin;
 
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.format.DateTimeFormatter;
 import java.util.Formatter;
@@ -18,6 +14,7 @@ import java.util.Scanner;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
+import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
@@ -67,7 +64,7 @@ public final class Satin {
         }
     }
 
-    private void calculate() throws IOException, URISyntaxException, InterruptedException {
+    private void calculate() throws InterruptedException {
         try (var sc = new Scanner(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("laser.dat"), "Laser data is null"));
              var executorService = Executors.newFixedThreadPool(8)) {
             final var inputPowers = getInputPowers();
@@ -80,10 +77,11 @@ public final class Satin {
         }
     }
 
-    private List<Integer> getInputPowers() throws IOException, URISyntaxException {
-        try (var lines = Files.lines(Path.of(Objects.requireNonNull(getClass().getClassLoader().getResource("pin.dat"), "Input power data is null").toURI()))) {
-            return lines
+    private List<Integer> getInputPowers() {
+        try (var sc = new Scanner(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("pin.dat"), "Input power data is null"))) {
+            return sc.findAll(Pattern.compile("\\d+"))
                     .parallel()
+                    .map(MatchResult::group)
                     .mapToInt(Integer::parseInt)
                     .boxed()
                     .toList();
