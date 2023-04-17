@@ -13,10 +13,11 @@ import java.nio.file.Paths;
 import java.time.format.DateTimeFormatter;
 import java.util.Formatter;
 import java.util.List;
+import java.util.Objects;
+import java.util.Scanner;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
@@ -68,14 +69,12 @@ public final class Satin {
 
     private void calculate() throws IOException, URISyntaxException, InterruptedException {
         final var pattern = Pattern.compile("((md|pi)[a-z]{2}\\.out)\\s+(\\d{2}\\.\\d)\\s+(\\d+)\\s+(?i:\\2)?");
-        try (var lines = Files.lines(getPath("laser.dat"));
+        try (var sc = new Scanner(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("laser.dat"), "Laser data is null"));
              var executorService = Executors.newFixedThreadPool(8)) {
             final var inputPowers = getInputPowers();
-            var tasks = lines
+            var tasks = sc.findAll(pattern)
                     .parallel()
-                    .map(pattern::matcher)
-                    .filter(Matcher::matches)
-                    .map(m -> new Laser(m.group(1), parseDouble(m.group(3)), parseInt(m.group(4)), m.group(2)))
+                    .map(mr -> new Laser(mr.group(1), parseDouble(mr.group(3)), parseInt(mr.group(4)), mr.group(2)))
                     .map(laser -> (Callable<Void>) () -> process(inputPowers, laser))
                     .toList();
             executorService.invokeAll(tasks);
@@ -83,17 +82,13 @@ public final class Satin {
     }
 
     private List<Integer> getInputPowers() throws IOException, URISyntaxException {
-        try (var lines = Files.lines(getPath("pin.dat"))) {
+        try (var lines = Files.lines(Path.of(Objects.requireNonNull(getClass().getClassLoader().getResource("pin.dat"), "Input power data is null").toURI()))) {
             return lines
                     .parallel()
                     .mapToInt(Integer::parseInt)
                     .boxed()
                     .toList();
         }
-    }
-
-    private Path getPath(String fileName) throws URISyntaxException {
-        return Path.of(getClass().getClassLoader().getResource(fileName).toURI());
     }
 
     private Void process(final List<Integer> inputPowers, final Laser laser) throws FileNotFoundException {
