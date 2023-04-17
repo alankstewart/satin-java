@@ -68,12 +68,16 @@ public final class Satin {
 
     private void calculate() throws IOException, URISyntaxException, InterruptedException {
         final var inputPowers = getInputPowers();
-        final var tasks = getLaserData()
-                .parallelStream()
-                .map(laser -> (Callable<Void>) () -> process(inputPowers, laser))
-                .toList();
-
-        try (var executorService = Executors.newFixedThreadPool(8)) {
+        final var pattern = Pattern.compile("((md|pi)[a-z]{2}\\.out)\\s+(\\d{2}\\.\\d)\\s+(\\d+)\\s+(?i:\\2)?");
+        try (var lines = Files.lines(getPath("laser.dat"));
+             var executorService = Executors.newFixedThreadPool(8)) {
+            var tasks = lines
+                    .parallel()
+                    .map(pattern::matcher)
+                    .filter(Matcher::matches)
+                    .map(m -> new Laser(m.group(1), parseDouble(m.group(3)), parseInt(m.group(4)), m.group(2)))
+                    .map(laser -> (Callable<Void>) () -> process(inputPowers, laser))
+                    .toList();
             executorService.invokeAll(tasks);
         }
     }
@@ -84,18 +88,6 @@ public final class Satin {
                     .parallel()
                     .mapToInt(Integer::parseInt)
                     .boxed()
-                    .toList();
-        }
-    }
-
-    private List<Laser> getLaserData() throws IOException, URISyntaxException {
-        final var pattern = Pattern.compile("((md|pi)[a-z]{2}\\.out)\\s+(\\d{2}\\.\\d)\\s+(\\d+)\\s+(?i:\\2)?");
-        try (var lines = Files.lines(getPath("laser.dat"))) {
-            return lines
-                    .parallel()
-                    .map(pattern::matcher)
-                    .filter(Matcher::matches)
-                    .map(m -> new Laser(m.group(1), parseDouble(m.group(3)), parseInt(m.group(4)), m.group(2)))
                     .toList();
         }
     }
