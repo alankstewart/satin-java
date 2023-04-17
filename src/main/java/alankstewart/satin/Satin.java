@@ -67,10 +67,10 @@ public final class Satin {
     }
 
     private void calculate() throws IOException, URISyntaxException, InterruptedException {
-        final var inputPowers = getInputPowers();
         final var pattern = Pattern.compile("((md|pi)[a-z]{2}\\.out)\\s+(\\d{2}\\.\\d)\\s+(\\d+)\\s+(?i:\\2)?");
         try (var lines = Files.lines(getPath("laser.dat"));
              var executorService = Executors.newFixedThreadPool(8)) {
+            final var inputPowers = getInputPowers();
             var tasks = lines
                     .parallel()
                     .map(pattern::matcher)
