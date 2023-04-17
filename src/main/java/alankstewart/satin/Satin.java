@@ -68,11 +68,10 @@ public final class Satin {
     }
 
     private void calculate() throws IOException, URISyntaxException, InterruptedException {
-        final var pattern = Pattern.compile("((md|pi)[a-z]{2}\\.out)\\s+(\\d{2}\\.\\d)\\s+(\\d+)\\s+(?i:\\2)?");
         try (var sc = new Scanner(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("laser.dat"), "Laser data is null"));
              var executorService = Executors.newFixedThreadPool(8)) {
             final var inputPowers = getInputPowers();
-            var tasks = sc.findAll(pattern)
+            var tasks = sc.findAll(Pattern.compile("((md|pi)[a-z]{2}\\.out)\\s+(\\d{2}\\.\\d)\\s+(\\d+)\\s+(?i:\\2)?"))
                     .parallel()
                     .map(mr -> new Laser(mr.group(1), parseDouble(mr.group(3)), parseInt(mr.group(4)), mr.group(2)))
                     .map(laser -> (Callable<Void>) () -> process(inputPowers, laser))
