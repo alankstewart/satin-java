@@ -49,6 +49,7 @@ public final class Satin {
     private static final String COLUMN_FORMAT = "%7s  %-19s  %-12s  %-13s  %9s%n";
 
     public static void main(final String[] args) {
+        System.setProperty("java.util.logging.SimpleFormatter.format", "%5$s %n");
         final var start = nanoTime();
         final var satin = new Satin();
         try {
