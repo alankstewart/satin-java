@@ -1,20 +1,19 @@
 package alankstewart.satin;
 
-import java.math.BigDecimal;
 import java.util.Comparator;
-
-import static java.lang.Math.log;
-import static java.math.BigDecimal.valueOf;
-import static java.math.RoundingMode.HALF_UP;
 
 record Gaussian(int inputPower, double outputPower, int saturationIntensity) implements Comparable<Gaussian> {
 
-    public BigDecimal logOutputPowerDividedByInputPower() {
-        return valueOf(log(outputPower / inputPower)).setScale(3, HALF_UP);
+    public double logOutputPowerDividedByInputPower() {
+        return roundUp(Math.log(outputPower / inputPower));
     }
 
-    public BigDecimal outputPowerMinusInputPower() {
-        return valueOf(outputPower).subtract(valueOf(inputPower)).setScale(3, HALF_UP);
+    public double outputPowerMinusInputPower() {
+        return roundUp(outputPower - inputPower);
+    }
+
+    private double roundUp(double value) {
+        return Math.round(value * 1000.0) / 1000.0;
     }
 
     @Override

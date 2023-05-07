@@ -4,9 +4,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvFileSource;
 
-import java.math.BigDecimal;
-
-import static java.math.RoundingMode.HALF_UP;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -20,18 +17,22 @@ class SatinTest {
     void shouldCalculateGaussians(int inputPower,
                                   double smallSignalGain,
                                   int saturationIntensity,
-                                  BigDecimal outputPower,
-                                  BigDecimal logOutputPowerDividedByInputPower,
-                                  BigDecimal outputPowerMinusInputPower) {
+                                  double outputPower,
+                                  double logOutputPowerDividedByInputPower,
+                                  double outputPowerMinusInputPower) {
         var satin = new Satin();
         satin.gaussianCalculation(inputPower, smallSignalGain).parallelStream()
-                .filter(g -> g.saturationIntensity() == saturationIntensity)
+                .filter(gaussian -> gaussian.saturationIntensity() == saturationIntensity)
                 .findFirst()
-                .ifPresentOrElse(g ->
+                .ifPresentOrElse(gaussian ->
                         assertAll(
-                                () -> assertEquals(0, BigDecimal.valueOf(g.outputPower()).setScale(3, HALF_UP).compareTo(outputPower)),
-                                () -> assertEquals(0, g.logOutputPowerDividedByInputPower().compareTo(logOutputPowerDividedByInputPower)),
-                                () -> assertEquals(0, g.outputPowerMinusInputPower().compareTo(outputPowerMinusInputPower))
+                                () -> assertEquals(outputPower, roundUp(gaussian.outputPower())),
+                                () -> assertEquals(logOutputPowerDividedByInputPower, roundUp(gaussian.logOutputPowerDividedByInputPower())),
+                                () -> assertEquals(outputPowerMinusInputPower, roundUp(gaussian.outputPowerMinusInputPower()))
                         ), Assertions::fail);
+    }
+
+    private double roundUp(double value) {
+        return Math.round(value * 1000.0) / 1000.0;
     }
 }
