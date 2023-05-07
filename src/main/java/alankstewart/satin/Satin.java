@@ -5,6 +5,7 @@
 package alankstewart.satin;
 
 import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.nio.file.Paths;
 import java.time.format.DateTimeFormatter;
 import java.util.Formatter;
@@ -66,7 +67,7 @@ public final class Satin {
     }
 
     private void calculate() throws InterruptedException {
-        try (var sc = new Scanner(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("laser.dat"), "Laser data is null"));
+        try (var sc = new Scanner(Objects.requireNonNull(getInputStream("laser.dat"), "Laser data is null"));
              var executorService = Executors.newFixedThreadPool(8)) {
             final var inputPowers = getInputPowers();
             var tasks = sc.findAll(Pattern.compile("((md|pi)[a-z]{2}\\.out)\\s+(\\d{2}\\.\\d)\\s+(\\d+)\\s+(?i:\\2)?"))
@@ -78,8 +79,9 @@ public final class Satin {
         }
     }
 
+
     private List<Integer> getInputPowers() {
-        try (var sc = new Scanner(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("pin.dat"), "Input power data is null"))) {
+        try (var sc = new Scanner(Objects.requireNonNull(getInputStream("pin.dat"), "Input power data is null"))) {
             return sc.findAll(Pattern.compile("\\d+"))
                     .parallel()
                     .map(MatchResult::group)
@@ -87,6 +89,10 @@ public final class Satin {
                     .boxed()
                     .toList();
         }
+    }
+
+    private InputStream getInputStream(String fileName) {
+        return getClass().getClassLoader().getResourceAsStream(fileName);
     }
 
     private Void process(final List<Integer> inputPowers, final Laser laser) throws FileNotFoundException {
