@@ -47,8 +47,8 @@ public final class Satin {
             .map(zInc -> 2 * zInc * DZ / (Z12 + pow(zInc, 2)))
             .toArray();
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("d MMM yyyy HH:mm:ss.SSS");
-    private static final String TABLE_HEADER = "%7s  %-19s  %-12s  %-13s  %9s%n";
-    private static final String DATA_ROW_FORMAT = "%7s  %-19s  %-12s  %13.3f %9.3f%n";
+    private static final String TABLE_HEADER = "%7s  %-19s  %-12s  %-13s  %8s%n";
+    private static final String DATA_ROW_FORMAT = "%7s  %-19s  %-12s  %12.3f  %9.3f%n";
 
     public static void main(final String[] args) {
         System.setProperty("java.util.logging.SimpleFormatter.format", "%5$s %n");
@@ -79,7 +79,6 @@ public final class Satin {
             executorService.invokeAll(tasks);
         }
     }
-
 
     private List<Integer> getInputPowers() {
         try (var sc = new Scanner(Objects.requireNonNull(getInputStream("pin.dat"), "Input power data is null"))) {
