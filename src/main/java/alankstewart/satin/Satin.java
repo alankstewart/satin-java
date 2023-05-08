@@ -8,10 +8,7 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.nio.file.Paths;
 import java.time.format.DateTimeFormatter;
-import java.util.Formatter;
-import java.util.List;
-import java.util.Objects;
-import java.util.Scanner;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
@@ -80,14 +77,13 @@ public final class Satin {
         }
     }
 
-    private List<Integer> getInputPowers() {
+    private int[] getInputPowers() {
         try (var sc = new Scanner(Objects.requireNonNull(getInputStream("pin.dat"), "Input power data is null"))) {
             return sc.findAll(Pattern.compile("\\d+"))
                     .parallel()
                     .map(MatchResult::group)
                     .mapToInt(Integer::parseInt)
-                    .boxed()
-                    .toList();
+                    .toArray();
         }
     }
 
@@ -95,7 +91,7 @@ public final class Satin {
         return getClass().getClassLoader().getResourceAsStream(fileName);
     }
 
-    private Void process(final List<Integer> inputPowers, final Laser laser) throws FileNotFoundException {
+    private Void process(final int[] inputPowers, final Laser laser) throws FileNotFoundException {
         final var file = Paths.get(System.getProperty("user.dir")).resolve(laser.outputFile()).toFile();
         try (final var formatter = new Formatter(file)) {
             formatter.format("Start date: %s%n%nGaussian Beam%n%nPressure in Main Discharge = %skPa%nSmall-signal Gain = %s%nCO2 via %s%n%n",
@@ -106,8 +102,9 @@ public final class Satin {
                     .format(TABLE_HEADER, "Pin", "Pout", "Sat. Int", "ln(Pout/Pin)", "Pout-Pin")
                     .format(TABLE_HEADER, "(watts)", "(watts)", "(watts/cm2)", "", "(watts)");
 
-            inputPowers.parallelStream()
-                    .map(inputPower -> gaussianCalculation(inputPower, laser.smallSignalGain()))
+            Arrays.stream(inputPowers)
+                    .parallel()
+                    .mapToObj(inputPower -> gaussianCalculation(inputPower, laser.smallSignalGain()))
                     .flatMap(List::stream)
                     .sorted()
                     .forEachOrdered(gaussian -> formatter.format(DATA_ROW_FORMAT,
