@@ -58,7 +58,7 @@ public final class Satin {
             var tasks = sc.findAll(Pattern.compile("((md|pi)[a-z]{2}\\.out)\\s+(\\d{2}\\.\\d)\\s+(\\d+)\\s+(?i:\\2)?"))
                     .parallel()
                     .map(mr -> new Laser(mr.group(1), parseDouble(mr.group(3)), parseInt(mr.group(4)), mr.group(2)))
-                    .map(laser -> (Callable<Void>) () -> process(inputPowers, laser))
+                    .map(laser -> (Callable<String>) () -> process(inputPowers, laser))
                     .toList();
             executorService.invokeAll(tasks);
         } catch (InterruptedException e) {
@@ -85,7 +85,7 @@ public final class Satin {
         return getClass().getClassLoader().getResourceAsStream(fileName);
     }
 
-    private Void process(final int[] inputPowers, final Laser laser) throws FileNotFoundException {
+    private String process(final int[] inputPowers, final Laser laser) throws FileNotFoundException {
         final var file = Paths.get(System.getProperty("user.dir")).resolve(laser.outputFile()).toFile();
         try (final var formatter = new Formatter(file)) {
             formatter.format("Start date: %s%n%nGaussian Beam%n%nPressure in Main Discharge = %skPa%nSmall-signal Gain = %s%nCO2 via %s%n%n",
@@ -109,7 +109,7 @@ public final class Satin {
                             gaussian.outputPowerMinusInputPower()));
 
             formatter.format("%nEnd date: %s%n", now().format(DATE_TIME_FORMATTER)).flush();
-            return null;
+            return file.getAbsolutePath();
         }
     }
 
