@@ -11,6 +11,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
@@ -21,8 +22,6 @@ import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;
 import static java.lang.Math.*;
 import static java.lang.System.nanoTime;
-import static java.math.BigDecimal.valueOf;
-import static java.math.RoundingMode.HALF_UP;
 import static java.time.LocalDateTime.now;
 
 public final class Satin {
@@ -45,26 +44,14 @@ public final class Satin {
             .toArray();
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("d MMM yyyy HH:mm:ss.SSS");
     private static final String TABLE_HEADER = "%7s  %-19s  %-12s  %-13s  %8s%n";
-    private static final String DATA_ROW_FORMAT = "%7s  %-19s  %-12s  %12.3f  %9.3f%n";
 
     public static void main(final String[] args) {
         System.setProperty("java.util.logging.SimpleFormatter.format", "%5$s %n");
-        final var start = nanoTime();
-        final var satin = new Satin();
-        try {
-            satin.calculate();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            LOGGER.severe(e.getMessage());
-        } catch (Exception e) {
-            LOGGER.severe(e.getMessage());
-        } finally {
-            var msg = String.format("The time was %.3f seconds%n", valueOf(nanoTime() - start).divide(valueOf(1E9), 3, HALF_UP));
-            LOGGER.info(msg);
-        }
+        new Satin().calculate();
     }
 
-    private void calculate() throws InterruptedException {
+    private void calculate() {
+        final var start = nanoTime();
         try (var sc = new Scanner(Objects.requireNonNull(getInputStream("laser.dat"), "Laser data is null"));
              var executorService = Executors.newFixedThreadPool(8)) {
             final var inputPowers = getInputPowers();
@@ -74,6 +61,13 @@ public final class Satin {
                     .map(laser -> (Callable<Void>) () -> process(inputPowers, laser))
                     .toList();
             executorService.invokeAll(tasks);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            LOGGER.severe(e.getMessage());
+        } catch (Exception e) {
+            LOGGER.severe(e.getMessage());
+        } finally {
+            LOGGER.log(Level.INFO, "The time was {0} seconds", (nanoTime() - start) / 1E9);
         }
     }
 
@@ -107,7 +101,7 @@ public final class Satin {
                     .mapToObj(inputPower -> gaussianCalculation(inputPower, laser.smallSignalGain()))
                     .flatMap(List::stream)
                     .sorted()
-                    .forEachOrdered(gaussian -> formatter.format(DATA_ROW_FORMAT,
+                    .forEachOrdered(gaussian -> formatter.format("%7s  %-19s  %-12s  %12.3f  %9.3f%n",
                             gaussian.inputPower(),
                             gaussian.outputPower(),
                             gaussian.saturationIntensity(),
