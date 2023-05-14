@@ -119,6 +119,7 @@ public final class Satin {
                 .mapToObj(saturationIntensity -> new Gaussian(inputPower,
                         calculateOutputPower(inputPower, smallSignalGain, saturationIntensity),
                         saturationIntensity))
+                .sorted()
                 .toList();
     }
 
