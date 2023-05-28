@@ -113,8 +113,8 @@ public final class Satin {
                             gaussian.outputPowerMinusInputPower()));
 
             formatter.format("%nEnd date: %s%n", now().format(DATE_TIME_FORMATTER)).flush();
-            return file.getAbsolutePath();
         }
+        return file.getAbsolutePath();
     }
 
     List<Gaussian> gaussianCalculation(final int inputPower, final double smallSignalGain) {
