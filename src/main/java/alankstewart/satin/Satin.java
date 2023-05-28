@@ -101,11 +101,10 @@ public final class Satin {
                     .format(TABLE_HEADER, "(watts)", "(watts)", "(watts/cm2)", "", "(watts)");
 
             Arrays.stream(inputPowers)
-                    .parallel()
                     .mapToObj(inputPower -> gaussianCalculation(inputPower, laser.smallSignalGain()))
                     .flatMap(List::stream)
                     .sorted()
-                    .forEachOrdered(gaussian -> formatter.format("%7s  %-19s  %-12s  %12.3f  %9.3f%n",
+                    .forEach(gaussian -> formatter.format("%7s  %-19s  %-12s  %12.3f  %9.3f%n",
                             gaussian.inputPower(),
                             gaussian.outputPower(),
                             gaussian.saturationIntensity(),
