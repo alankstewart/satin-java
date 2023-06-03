@@ -4,8 +4,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvFileSource;
 
-import java.util.concurrent.ForkJoinPool;
-
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -13,8 +11,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * Created by alanstewart on 26/03/15.
  */
 class SatinTest {
-
-    private static final ForkJoinPool FORK_JOIN_POOL = new ForkJoinPool();
 
     @ParameterizedTest
     @CsvFileSource(resources = "/satin.csv")
@@ -25,16 +21,15 @@ class SatinTest {
                                   double logOutputPowerDividedByInputPower,
                                   double outputPowerMinusInputPower) {
         var satin = new Satin();
-        FORK_JOIN_POOL.submit(() ->
-                satin.gaussianCalculation(inputPower, smallSignalGain).parallelStream()
-                        .filter(gaussian -> gaussian.saturationIntensity() == saturationIntensity)
-                        .findFirst()
-                        .ifPresentOrElse(gaussian ->
-                                assertAll(
-                                        () -> assertEquals(outputPower, roundUp(gaussian.outputPower())),
-                                        () -> assertEquals(logOutputPowerDividedByInputPower, gaussian.logOutputPowerDividedByInputPower()),
-                                        () -> assertEquals(outputPowerMinusInputPower, gaussian.outputPowerMinusInputPower())
-                                ), Assertions::fail));
+        satin.gaussianCalculation(inputPower, smallSignalGain).parallelStream()
+                .filter(gaussian -> gaussian.saturationIntensity() == saturationIntensity)
+                .findFirst()
+                .ifPresentOrElse(gaussian ->
+                        assertAll(
+                                () -> assertEquals(outputPower, roundUp(gaussian.outputPower())),
+                                () -> assertEquals(logOutputPowerDividedByInputPower, gaussian.logOutputPowerDividedByInputPower()),
+                                () -> assertEquals(outputPowerMinusInputPower, gaussian.outputPowerMinusInputPower())
+                        ), Assertions::fail);
     }
 
     private double roundUp(double value) {
