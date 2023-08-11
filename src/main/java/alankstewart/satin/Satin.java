@@ -7,7 +7,6 @@ package alankstewart.satin;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Formatter;
 import java.util.List;
@@ -29,6 +28,7 @@ import static java.lang.Math.exp;
 import static java.lang.Math.pow;
 import static java.lang.System.nanoTime;
 import static java.time.LocalDateTime.now;
+import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
 
 public final class Satin {
 
@@ -48,7 +48,6 @@ public final class Satin {
             .mapToDouble(i -> ((double) i - (INCR >> 1)) / 25)
             .map(zInc -> 2 * zInc * DZ / (Z12 + pow(zInc, 2)))
             .toArray();
-    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("d MMM yyyy HH:mm:ss.SSS");
     private static final String TABLE_HEADER = "%7s  %-19s  %-12s  %-13s  %8s%n";
 
     public static void main(final String[] args) {
@@ -93,7 +92,7 @@ public final class Satin {
         final var file = Paths.get(System.getProperty("user.dir")).resolve(laser.outputFile()).toFile();
         try (final var formatter = new Formatter(file)) {
             formatter.format("Start date: %s%n%nGaussian Beam%n%nPressure in Main Discharge = %skPa%nSmall-signal Gain = %s%nCO2 via %s%n%n",
-                            now().format(DATE_TIME_FORMATTER),
+                            ISO_DATE_TIME.format(now()),
                             laser.dischargePressure(),
                             laser.smallSignalGain(),
                             laser.carbonDioxide())
@@ -111,7 +110,7 @@ public final class Satin {
                             gaussian.logOutputPowerDividedByInputPower(),
                             gaussian.outputPowerMinusInputPower()));
 
-            formatter.format("%nEnd date: %s%n", now().format(DATE_TIME_FORMATTER)).flush();
+            formatter.format("%nEnd date: %s%n", ISO_DATE_TIME.format(now())).flush();
         }
         return file.getAbsolutePath();
     }
