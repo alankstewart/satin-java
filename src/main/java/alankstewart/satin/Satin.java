@@ -59,7 +59,7 @@ public final class Satin {
         final var start = nanoTime();
         try (var is = Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("laser.dat"), "Laser data is null");
              var sc = new Scanner(is);
-             var executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors())) {
+             var executorService = Executors.newVirtualThreadPerTaskExecutor()) {
             final var inputPowers = getInputPowers();
             var tasks = sc.findAll(Pattern.compile("((md|pi)[a-z]{2}\\.out)\\s+(\\d{2}\\.\\d)\\s+(\\d+)\\s+(?i:\\2)?"))
                     .parallel()
