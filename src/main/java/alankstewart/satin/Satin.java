@@ -118,11 +118,14 @@ public final class Satin {
     List<Gaussian> gaussianCalculation(final int inputPower, final double smallSignalGain) {
         return IntStream.iterate(10000, i -> i <= 25000, i -> i + 1000)
                 .parallel()
-                .mapToObj(saturationIntensity -> new Gaussian(inputPower,
-                        calculateOutputPower(inputPower, smallSignalGain, saturationIntensity),
-                        saturationIntensity))
+                .mapToObj(saturationIntensity -> createGaussian(inputPower, smallSignalGain, saturationIntensity))
                 .sorted()
                 .toList();
+    }
+
+    private Gaussian createGaussian(int inputPower, double smallSignalGain, int saturationIntensity) {
+        var outputPower = calculateOutputPower(inputPower, smallSignalGain, saturationIntensity);
+        return new Gaussian(inputPower, outputPower, saturationIntensity);
     }
 
     private double calculateOutputPower(int inputPower, double smallSignalGain, int saturationIntensity) {
