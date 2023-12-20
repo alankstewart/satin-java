@@ -61,9 +61,9 @@ public final class Satin {
              var sc = new Scanner(is);
              var executorService = Executors.newVirtualThreadPerTaskExecutor()) {
             final var inputPowers = getInputPowers();
-            var tasks = sc.findAll(Pattern.compile("((md|pi)[a-z]{2}\\.out)\\s+(\\d{2}\\.\\d)\\s+(\\d+)\\s+(?i:\\2)?"))
+            var tasks = sc.findAll(Pattern.compile("((?:md|pi)[a-z]{2}\\.out)\\s+(\\d{2}\\.\\d)\\s+(\\d+)\\s+(MD|PI)"))
                     .parallel()
-                    .map(mr -> new Laser(mr.group(1), parseDouble(mr.group(3)), parseInt(mr.group(4)), mr.group(2)))
+                    .map(mr -> new Laser(mr.group(1), parseDouble(mr.group(2)), parseInt(mr.group(3)), mr.group(4)))
                     .map(laser -> (Callable<String>) () -> process(inputPowers, laser))
                     .toList();
             executorService.invokeAll(tasks);
