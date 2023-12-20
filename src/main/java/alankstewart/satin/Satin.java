@@ -48,7 +48,6 @@ public final class Satin {
             .mapToDouble(i -> ((double) i - (INCR >> 1)) / 25)
             .map(zInc -> 2 * zInc * DZ / (Z12 + pow(zInc, 2)))
             .toArray();
-    private static final String TABLE_HEADER = "%7s  %-19s  %-12s  %-13s  %8s%n";
 
     public static void main(final String[] args) {
         System.setProperty("java.util.logging.SimpleFormatter.format", "%5$s %n");
@@ -91,18 +90,18 @@ public final class Satin {
     private String process(final int[] inputPowers, final Laser laser) throws FileNotFoundException {
         final var file = Paths.get(System.getProperty("user.dir")).resolve(laser.outputFile()).toFile();
         try (final var formatter = new Formatter(file)) {
+            var tableHeader = "%7s  %-19s  %-12s  %-13s  %8s%n";
             formatter.format("Start date: %s%n%nGaussian Beam%n%nPressure in Main Discharge = %skPa%nSmall-signal Gain = %s%nCO2 via %s%n%n",
                             ISO_DATE_TIME.format(now()),
                             laser.dischargePressure(),
                             laser.smallSignalGain(),
                             laser.carbonDioxide())
-                    .format(TABLE_HEADER, "Pin", "Pout", "Sat. Int", "ln(Pout/Pin)", "Pout-Pin")
-                    .format(TABLE_HEADER, "(watts)", "(watts)", "(watts/cm2)", "", "(watts)");
+                    .format(tableHeader, "Pin", "Pout", "Sat. Int", "ln(Pout/Pin)", "Pout-Pin")
+                    .format(tableHeader, "(watts)", "(watts)", "(watts/cm2)", "", "(watts)");
 
             Arrays.stream(inputPowers)
                     .mapToObj(inputPower -> gaussianCalculation(inputPower, laser.smallSignalGain()))
                     .flatMap(List::stream)
-                    .sorted()
                     .forEach(gaussian -> formatter.format("%7s  %-19s  %-12s  %12.3f  %9.3f%n",
                             gaussian.inputPower(),
                             gaussian.outputPower(),
