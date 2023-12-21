@@ -48,6 +48,8 @@ public final class Satin {
             .mapToDouble(i -> ((double) i - (INCR >> 1)) / 25)
             .map(zInc -> 2 * zInc * DZ / (Z12 + pow(zInc, 2)))
             .toArray();
+    public static final String LASER_DAT = "laser.dat";
+    public static final String PIN_DAT = "pin.dat";
 
     public static void main(final String[] args) {
         System.setProperty("java.util.logging.SimpleFormatter.format", "%5$s %n");
@@ -56,7 +58,7 @@ public final class Satin {
 
     private void calculate() {
         final var start = nanoTime();
-        try (var is = Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("laser.dat"), "Laser data is null");
+        try (var is = Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream(LASER_DAT), "Laser data is null");
              var sc = new Scanner(is);
              var executorService = Executors.newVirtualThreadPerTaskExecutor()) {
             final var inputPowers = getInputPowers();
@@ -77,7 +79,7 @@ public final class Satin {
     }
 
     private int[] getInputPowers() throws IOException {
-        try (var is = Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("pin.dat"), "Input power data is null");
+        try (var is = Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream(PIN_DAT), "Input power data is null");
              var sc = new Scanner(is)) {
             return sc.findAll(Pattern.compile("\\d+"))
                     .parallel()
