@@ -130,11 +130,12 @@ public final class Satin {
     }
 
     private double calculateOutputPower(int inputPower, double smallSignalGain, int saturationIntensity) {
+        final var expr2 = saturationIntensity * smallSignalGain / 32000 * DZ;
         final var inputIntensity = 2 * inputPower / AREA;
         return DoubleStream.iterate(0, r -> r < 0.5, r -> r + DR)
                 .map(r -> DoubleStream.iterate(0, j -> j < INCR, j -> j + 1)
                         .reduce(inputIntensity * exp(-2 * pow(r, 2) / RAD2), (outputIntensity, j) ->
-                                outputIntensity * (1 + (saturationIntensity * smallSignalGain / 32000 * DZ) / (saturationIntensity + outputIntensity) - EXPR1[(int) j])) * EXPR * r)
+                                outputIntensity * (1 + expr2 / (saturationIntensity + outputIntensity) - EXPR1[(int) j])) * EXPR * r)
                 .sum();
     }
 }
