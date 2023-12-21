@@ -124,7 +124,6 @@ public final class Satin {
         return IntStream.iterate(10000, i -> i <= 25000, i -> i + 1000)
                 .parallel()
                 .mapToObj(saturationIntensity -> createGaussian(inputPower, smallSignalGain, saturationIntensity))
-                .sorted()
                 .toList();
     }
 
