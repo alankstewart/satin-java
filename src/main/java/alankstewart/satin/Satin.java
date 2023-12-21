@@ -4,11 +4,10 @@
 
 package alankstewart.satin;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.Formatter;
 import java.util.List;
 import java.util.Objects;
 import java.util.Scanner;
@@ -27,6 +26,9 @@ import static java.lang.Math.PI;
 import static java.lang.Math.exp;
 import static java.lang.Math.pow;
 import static java.lang.System.nanoTime;
+import static java.nio.file.StandardOpenOption.APPEND;
+import static java.nio.file.StandardOpenOption.CREATE;
+import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 import static java.time.LocalDateTime.now;
 import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
 
@@ -89,31 +91,33 @@ public final class Satin {
         }
     }
 
-    private String process(final int[] inputPowers, final Laser laser) throws FileNotFoundException {
-        final var file = Paths.get(System.getProperty("user.dir")).resolve(laser.outputFile()).toFile();
-        try (final var formatter = new Formatter(file)) {
-            var tableHeader = "%7s  %-19s  %-12s  %-13s  %8s%n";
-            formatter.format("Start date: %s%n%nGaussian Beam%n%nPressure in Main Discharge = %skPa%nSmall-signal Gain = %s%nCO2 via %s%n%n",
-                            ISO_DATE_TIME.format(now()),
-                            laser.dischargePressure(),
-                            laser.smallSignalGain(),
-                            laser.carbonDioxide())
-                    .format(tableHeader, "Pin", "Pout", "Sat. Int", "ln(Pout/Pin)", "Pout-Pin")
-                    .format(tableHeader, "(watts)", "(watts)", "(watts/cm2)", "", "(watts)");
+    private String process(final int[] inputPowers, final Laser laser) throws IOException {
+        var path = Paths.get(System.getProperty("user.dir")).resolve(laser.outputFile());
+        Files.writeString(path, STR."""
+                Start date: \{ISO_DATE_TIME.format(now())}
 
-            Arrays.stream(inputPowers)
-                    .mapToObj(inputPower -> gaussianCalculation(inputPower, laser.smallSignalGain()))
-                    .flatMap(List::stream)
-                    .forEach(gaussian -> formatter.format("%7s  %-19s  %-12s  %12.3f  %9.3f%n",
-                            gaussian.inputPower(),
-                            gaussian.outputPower(),
-                            gaussian.saturationIntensity(),
-                            gaussian.logOutputPowerDividedByInputPower(),
-                            gaussian.outputPowerMinusInputPower()));
+                Gaussian Beam
 
-            formatter.format("%nEnd date: %s%n", ISO_DATE_TIME.format(now())).flush();
-        }
-        return file.getAbsolutePath();
+                Pressure in Main Discharge = \{laser.dischargePressure()}kPa
+                Small-signal Gain = \{laser.smallSignalGain()}
+                CO2 via \{laser.carbonDioxide()}
+
+                Pin      Pout                 Sat. Int      ln(Pout/Pin)   Pout-Pin
+                (watts)  (watts)              (watts/cm2)                   (watts)
+                """, CREATE, TRUNCATE_EXISTING);
+        var values = Arrays.stream(inputPowers)
+                .mapToObj(inputPower -> gaussianCalculation(inputPower, laser.smallSignalGain()))
+                .flatMap(List::stream)
+                .map(gaussian -> String.format("%7s  %-19s  %-12s  %12.3f  %9.3f",
+                        gaussian.inputPower(),
+                        gaussian.outputPower(),
+                        gaussian.saturationIntensity(),
+                        gaussian.logOutputPowerDividedByInputPower(),
+                        gaussian.outputPowerMinusInputPower()))
+                .toList();
+        Files.write(path, values, APPEND);
+        Files.writeString(path, STR."\nEnd date: \{ISO_DATE_TIME.format(now())}", APPEND);
+        return path.getFileName().toString();
     }
 
     List<Gaussian> gaussianCalculation(final int inputPower, final double smallSignalGain) {
