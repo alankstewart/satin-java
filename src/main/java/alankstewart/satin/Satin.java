@@ -16,7 +16,6 @@ import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.MatchResult;
-import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
 import static java.lang.Double.parseDouble;
@@ -63,7 +62,7 @@ public final class Satin {
              var sc = new Scanner(is);
              var executorService = Executors.newVirtualThreadPerTaskExecutor()) {
             final var inputPowers = getInputPowers();
-            var tasks = sc.findAll(Pattern.compile("((?:md|pi)[a-z]{2}\\.out)\\s+(\\d{2}\\.\\d)\\s+(\\d+)\\s+(MD|PI)"))
+            var tasks = sc.findAll("((?:md|pi)[a-z]{2}\\.out)\\s+(\\d{2}\\.\\d)\\s+(\\d+)\\s+(MD|PI)")
                     .map(mr -> new Laser(mr.group(1), parseDouble(mr.group(2)), parseInt(mr.group(3)), mr.group(4)))
                     .map(laser -> (Callable<String>) () -> process(inputPowers, laser))
                     .toList();
@@ -81,7 +80,7 @@ public final class Satin {
     private int[] getInputPowers() throws IOException {
         try (var is = Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream(PIN_FILE), "Input power data is null");
              var sc = new Scanner(is)) {
-            return sc.findAll(Pattern.compile("\\d+"))
+            return sc.findAll("\\d+")
                     .map(MatchResult::group)
                     .mapToInt(Integer::parseInt)
                     .toArray();
