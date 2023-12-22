@@ -142,10 +142,10 @@ public final class Satin {
 //    }
 
     private double calculateOutputPower(int inputPower, double smallSignalGain, int saturationIntensity) {
-        final double expr2 = saturationIntensity * smallSignalGain / 32000 * DZ;
-        final double inputIntensity = 2 * inputPower / AREA;
+        final var expr2 = saturationIntensity * smallSignalGain / 32000 * DZ;
+        final var inputIntensity = 2 * inputPower / AREA;
 
-        double outputPower = 0.0;
+        var outputPower = 0.0;
         for (double r = 0; r < 0.5; r += DR) {
             var outputIntensity = inputIntensity * exp(-2 * pow(r, 2) / RAD2);
             for (int j = 0; j < INCR; j++) {
