@@ -147,7 +147,7 @@ public final class Satin {
 
         double outputPower = 0.0;
         for (double r = 0; r < 0.5; r += DR) {
-            double outputIntensity = inputIntensity * exp(-2 * pow(r, 2) / RAD2);
+            var outputIntensity = inputIntensity * exp(-2 * pow(r, 2) / RAD2);
             for (int j = 0; j < INCR; j++) {
                 outputIntensity *= (1 + expr2 / (saturationIntensity + outputIntensity) - EXPR1[j]);
             }
