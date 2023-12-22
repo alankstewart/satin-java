@@ -16,6 +16,7 @@ import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.MatchResult;
+import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
 import static java.lang.Double.parseDouble;
@@ -131,29 +132,29 @@ public final class Satin {
         return new Gaussian(inputPower, outputPower, saturationIntensity);
     }
 
-//    private double calculateOutputPower(int inputPower, double smallSignalGain, int saturationIntensity) {
-//        final var expr2 = saturationIntensity * smallSignalGain / 32000 * DZ;
-//        final var inputIntensity = 2 * inputPower / AREA;
-//        return DoubleStream.iterate(0, r -> r < 0.5, r -> r + DR)
-//                .map(r -> DoubleStream.iterate(0, j -> j < INCR, j -> j + 1)
-//                        .reduce(inputIntensity * exp(-2 * pow(r, 2) / RAD2), (outputIntensity, j) ->
-//                                outputIntensity * (1 + expr2 / (saturationIntensity + outputIntensity) - EXPR1[(int) j])) * EXPR * r)
-//                .sum();
-//    }
-
     private double calculateOutputPower(int inputPower, double smallSignalGain, int saturationIntensity) {
         final var expr2 = saturationIntensity * smallSignalGain / 32000 * DZ;
         final var inputIntensity = 2 * inputPower / AREA;
-
-        var outputPower = 0.0;
-        for (double r = 0; r < 0.5; r += DR) {
-            var outputIntensity = inputIntensity * exp(-2 * pow(r, 2) / RAD2);
-            for (int j = 0; j < INCR; j++) {
-                outputIntensity *= (1 + expr2 / (saturationIntensity + outputIntensity) - EXPR1[j]);
-            }
-            outputPower += outputIntensity * EXPR * r;
-        }
-
-        return outputPower;
+        return DoubleStream.iterate(0, r -> r < 0.5, r -> r + DR)
+                .map(r -> DoubleStream.iterate(0, j -> j < INCR, j -> j + 1)
+                        .reduce(inputIntensity * exp(-2 * pow(r, 2) / RAD2), (outputIntensity, j) ->
+                                outputIntensity * (1 + expr2 / (saturationIntensity + outputIntensity) - EXPR1[(int) j])) * EXPR * r)
+                .sum();
     }
+
+//    private double calculateOutputPower(int inputPower, double smallSignalGain, int saturationIntensity) {
+//        final var expr2 = saturationIntensity * smallSignalGain / 32000 * DZ;
+//        final var inputIntensity = 2 * inputPower / AREA;
+//
+//        var outputPower = 0.0;
+//        for (double r = 0; r < 0.5; r += DR) {
+//            var outputIntensity = inputIntensity * exp(-2 * pow(r, 2) / RAD2);
+//            for (int j = 0; j < INCR; j++) {
+//                outputIntensity *= (1 + expr2 / (saturationIntensity + outputIntensity) - EXPR1[j]);
+//            }
+//            outputPower += outputIntensity * EXPR * r;
+//        }
+//
+//        return outputPower;
+//    }
 }
