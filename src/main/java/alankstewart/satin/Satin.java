@@ -104,7 +104,7 @@ public final class Satin {
                 Pin      Pout                 Sat. Int      ln(Pout/Pin)   Pout-Pin
                 (watts)  (watts)              (watts/cm2)                   (watts)
                 """, CREATE, TRUNCATE_EXISTING);
-        var values = Arrays.stream(inputPowers)
+        var lines = Arrays.stream(inputPowers)
                 .mapToObj(inputPower -> gaussianCalculation(inputPower, laser.smallSignalGain()))
                 .flatMap(List::stream)
                 .map(gaussian -> String.format("%7s  %-19s  %-12s  %12.3f  %9.3f",
@@ -114,7 +114,7 @@ public final class Satin {
                         gaussian.logOutputPowerDividedByInputPower(),
                         gaussian.outputPowerMinusInputPower()))
                 .toList();
-        Files.write(path, values, APPEND);
+        Files.write(path, lines, APPEND);
         Files.writeString(path, STR."\nEnd date: \{ISO_DATE_TIME.format(now())}", APPEND);
         return path.getFileName().toString();
     }
