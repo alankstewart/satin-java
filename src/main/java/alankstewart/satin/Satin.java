@@ -123,26 +123,22 @@ public final class Satin {
     List<Gaussian> gaussianCalculation(final int inputPower, final double smallSignalGain) {
         return IntStream.iterate(10000, i -> i <= 25000, i -> i + 1000)
                 .parallel()
-                .mapToObj(saturationIntensity -> createGaussian(inputPower, smallSignalGain, saturationIntensity))
+                .mapToObj(saturationIntensity -> calculateOutputPower(inputPower, smallSignalGain, saturationIntensity))
                 .toList();
     }
 
-    private Gaussian createGaussian(int inputPower, double smallSignalGain, int saturationIntensity) {
-        var outputPower = calculateOutputPower(inputPower, smallSignalGain, saturationIntensity);
-        return new Gaussian(inputPower, outputPower, saturationIntensity);
-    }
-
-    private double calculateOutputPower(int inputPower, double smallSignalGain, int saturationIntensity) {
+    private Gaussian calculateOutputPower(int inputPower, double smallSignalGain, int saturationIntensity) {
         final var expr2 = saturationIntensity * smallSignalGain / 32000 * DZ;
         final var inputIntensity = 2 * inputPower / AREA;
-        return DoubleStream.iterate(0, r -> r < 0.5, r -> r + DR)
+        var outputPower = DoubleStream.iterate(0, r -> r < 0.5, r -> r + DR)
                 .map(r -> DoubleStream.iterate(0, j -> j < INCR, j -> j + 1)
                         .reduce(inputIntensity * exp(-2 * pow(r, 2) / RAD2), (outputIntensity, j) ->
                                 outputIntensity * (1 + expr2 / (saturationIntensity + outputIntensity) - EXPR1[(int) j])) * EXPR * r)
                 .sum();
+        return new Gaussian(inputPower, outputPower, saturationIntensity);
     }
 
-//    private double calculateOutputPower(int inputPower, double smallSignalGain, int saturationIntensity) {
+//    private Gaussian calculateOutputPower(int inputPower, double smallSignalGain, int saturationIntensity) {
 //        final var expr2 = saturationIntensity * smallSignalGain / 32000 * DZ;
 //        final var inputIntensity = 2 * inputPower / AREA;
 //
@@ -155,6 +151,6 @@ public final class Satin {
 //            outputPower += outputIntensity * EXPR * r;
 //        }
 //
-//        return outputPower;
+//        return new Gaussian(inputPower, outputPower, saturationIntensity);
 //    }
 }
