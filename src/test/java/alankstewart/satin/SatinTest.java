@@ -23,7 +23,7 @@ class SatinTest {
         var satin = new Satin();
         satin.gaussianCalculation(inputPower, smallSignalGain).parallelStream()
                 .filter(gaussian -> gaussian.saturationIntensity() == saturationIntensity)
-                .findFirst()
+                .findAny()
                 .ifPresentOrElse(gaussian ->
                         assertAll(
                                 () -> assertEquals(outputPower, roundUp(gaussian.outputPower())),
