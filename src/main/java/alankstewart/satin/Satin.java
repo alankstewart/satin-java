@@ -16,7 +16,6 @@ import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.MatchResult;
-import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
 import static java.lang.Double.parseDouble;
@@ -137,18 +136,12 @@ public final class Satin {
             outputPower += outputIntensity * EXPR * r;
         }
 
-        return new Gaussian(inputPower, outputPower, saturationIntensity);
-    }
+//        var outputPower = DoubleStream.iterate(0, r -> r < 0.5, r -> r + DR)
+//                .map(r -> DoubleStream.iterate(0, j -> j < INCR, j -> j + 1)
+//                        .reduce(inputIntensity * exp(-2 * pow(r, 2) / RAD2), (outputIntensity, j) ->
+//                                outputIntensity * (1 + expr2 / (saturationIntensity + outputIntensity) - EXPR1[(int) j])) * EXPR * r)
+//                .sum();
 
-    private Gaussian calculateOutputPowerAlternate(int inputPower, double smallSignalGain, int saturationIntensity) {
-        final var expr2 = saturationIntensity * smallSignalGain / 32000 * DZ;
-        final var inputIntensity = 2 * inputPower / AREA;
-
-        var outputPower = DoubleStream.iterate(0, r -> r < 0.5, r -> r + DR)
-                .map(r -> DoubleStream.iterate(0, j -> j < INCR, j -> j + 1)
-                        .reduce(inputIntensity * exp(-2 * pow(r, 2) / RAD2), (outputIntensity, j) ->
-                                outputIntensity * (1 + expr2 / (saturationIntensity + outputIntensity) - EXPR1[(int) j])) * EXPR * r)
-                .sum();
         return new Gaussian(inputPower, outputPower, saturationIntensity);
     }
 
