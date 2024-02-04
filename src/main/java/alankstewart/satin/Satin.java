@@ -120,19 +120,20 @@ public final class Satin {
     List<Gaussian> gaussianCalculation(final int inputPower, final double smallSignalGain) {
         return IntStream.iterate(10000, i -> i <= 25000, i -> i + 1000)
                 .parallel()
-                .mapToObj(saturationIntensity -> calculateOutputPower(inputPower, smallSignalGain, saturationIntensity))
+                .mapToObj(saturationIntensity -> new Gaussian(inputPower,
+                        calculateOutputPower(inputPower, smallSignalGain, saturationIntensity),
+                        saturationIntensity))
                 .toList();
     }
 
-    private Gaussian calculateOutputPower(int inputPower, double smallSignalGain, int saturationIntensity) {
+    private double calculateOutputPower(int inputPower, double smallSignalGain, int saturationIntensity) {
         final var expr2 = saturationIntensity * smallSignalGain / 32000 * DZ;
         final var inputIntensity = 2 * inputPower / AREA;
-        var outputPower = DoubleStream.iterate(0, r -> r < 0.5, r -> r + DR)
+        return DoubleStream.iterate(0, r -> r < 0.5, r -> r + DR)
                 .map(r -> DoubleStream.iterate(0, j -> j < INCR, j -> j + 1)
                         .reduce(inputIntensity * exp(-2 * pow(r, 2) / RAD2), (outputIntensity, j) ->
                                 outputIntensity * (1 + expr2 / (saturationIntensity + outputIntensity) - EXPR1[(int) j])) * EXPR * r)
                 .sum();
-        return new Gaussian(inputPower, outputPower, saturationIntensity);
     }
 
     private record Laser(String outputFile, double smallSignalGain, int dischargePressure, String carbonDioxide) {
