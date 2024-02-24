@@ -103,7 +103,7 @@ public final class Satin {
         var lines = Arrays.stream(inputPowers)
                 .mapToObj(inputPower -> gaussianCalculation(inputPower, laser.smallSignalGain()))
                 .flatMap(List::stream)
-                .map(gaussian -> "%-10s%-21s%-14s%5.3f%15.3f".formatted(
+                .map(gaussian -> "%-10s%-21.14f%-14s%5.3f%15.3f".formatted(
                         gaussian.inputPower(),
                         gaussian.outputPower(),
                         gaussian.saturationIntensity(),
