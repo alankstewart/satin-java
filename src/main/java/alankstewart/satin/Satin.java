@@ -107,8 +107,8 @@ public final class Satin {
                         gaussian.inputPower(),
                         gaussian.outputPower(),
                         gaussian.saturationIntensity(),
-                        gaussian.logOutputPowerDividedByInputPower(),
-                        gaussian.outputPowerMinusInputPower()))
+                        Math.log(gaussian.outputPower / gaussian.inputPower),
+                        gaussian.outputPower - gaussian.inputPower))
                 .toList();
         Files.write(path, lines, APPEND);
 
@@ -140,13 +140,5 @@ public final class Satin {
     }
 
     public record Gaussian(int inputPower, double outputPower, int saturationIntensity) {
-
-        public double logOutputPowerDividedByInputPower() {
-            return Math.log(outputPower / inputPower);
-        }
-
-        public double outputPowerMinusInputPower() {
-            return outputPower - inputPower;
-        }
     }
 }

@@ -27,8 +27,8 @@ class SatinTest {
                 .ifPresentOrElse(gaussian ->
                         assertAll(
                                 () -> assertEquals(outputPower, roundUp(gaussian.outputPower())),
-                                () -> assertEquals(logOutputPowerDividedByInputPower, roundUp(gaussian.logOutputPowerDividedByInputPower())),
-                                () -> assertEquals(outputPowerMinusInputPower, roundUp(gaussian.outputPowerMinusInputPower()))
+                                () -> assertEquals(logOutputPowerDividedByInputPower, roundUp(Math.log(gaussian.outputPower() / gaussian.inputPower()))),
+                                () -> assertEquals(outputPowerMinusInputPower, roundUp(gaussian.outputPower() - gaussian.inputPower()))
                         ), Assertions::fail);
     }
 
