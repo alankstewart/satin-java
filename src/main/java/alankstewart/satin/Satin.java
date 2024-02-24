@@ -96,14 +96,14 @@ public final class Satin {
                 Small-signal Gain = \{laser.smallSignalGain()}
                 CO2 via \{laser.carbonDioxide()}
 
-                Pin      Pout                 Sat. Int      ln(Pout/Pin)   Pout-Pin
-                (watts)  (watts)              (watts/cm2)                   (watts)
+                Pin       Pout                 Sat. Int      ln(Pout/Pin)   Pout-Pin
+                (watts)   (watts)              (watts/cm2)                  (watts)
                 """, CREATE, TRUNCATE_EXISTING);
 
         var lines = Arrays.stream(inputPowers)
                 .mapToObj(inputPower -> gaussianCalculation(inputPower, laser.smallSignalGain()))
                 .flatMap(List::stream)
-                .map(gaussian -> "%7s  %-19s  %-12s  %12.3f  %9.3f".formatted(
+                .map(gaussian -> "%-10s%-21s%-14s%5.3f%15.3f".formatted(
                         gaussian.inputPower(),
                         gaussian.outputPower(),
                         gaussian.saturationIntensity(),
