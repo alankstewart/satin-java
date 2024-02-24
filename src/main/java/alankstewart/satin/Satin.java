@@ -104,9 +104,9 @@ public final class Satin {
                 .mapToObj(inputPower -> gaussianCalculation(inputPower, laser.smallSignalGain()))
                 .flatMap(List::stream)
                 .map(gaussian -> "%-10s%-21.14f%-14s%5.3f%16.3f".formatted(
-                        gaussian.inputPower(),
-                        gaussian.outputPower(),
-                        gaussian.saturationIntensity(),
+                        gaussian.inputPower,
+                        gaussian.outputPower,
+                        gaussian.saturationIntensity,
                         Math.log(gaussian.outputPower / gaussian.inputPower),
                         gaussian.outputPower - gaussian.inputPower))
                 .toList();
