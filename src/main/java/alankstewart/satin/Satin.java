@@ -44,6 +44,11 @@ public final class Satin {
     private static final double Z1 = PI * pow(W1, 2) / LAMBDA;
     private static final double Z12 = pow(Z1, 2);
     private static final double EXPR = 2 * PI * DR;
+    private static final int INCR = 8001;
+    private static final double[] EXPR1 = IntStream.range(0, INCR)
+            .mapToDouble(i -> ((double) i - (INCR >> 1)) / 25)
+            .map(zInc -> 2 * zInc * DZ / (Z12 + pow(zInc, 2)))
+            .toArray();
     public static final String LASER_FILE = "laser.dat";
     public static final String PIN_FILE = "pin.dat";
 
@@ -125,18 +130,12 @@ public final class Satin {
     }
 
     private double calculateOutputPower(int inputPower, double smallSignalGain, int saturationIntensity) {
-        final int incr = 8001;
-        final double[] expr1 = IntStream.range(0, incr)
-                .mapToDouble(i -> ((double) i - (incr >> 1)) / 25)
-                .map(zInc -> 2 * zInc * DZ / (Z12 + pow(zInc, 2)))
-                .toArray();
-
         final var expr2 = saturationIntensity * smallSignalGain / 32000 * DZ;
         final var inputIntensity = 2 * inputPower / AREA;
         return DoubleStream.iterate(0, r -> r < 0.5, r -> r + DR)
-                .map(r -> DoubleStream.iterate(0, j -> j < incr, j -> j + 1)
+                .map(r -> DoubleStream.iterate(0, j -> j < INCR, j -> j + 1)
                         .reduce(inputIntensity * exp(-2 * pow(r, 2) / RAD2), (outputIntensity, j) ->
-                                outputIntensity * (1 + expr2 / (saturationIntensity + outputIntensity) - expr1[(int) j])) * EXPR * r)
+                                outputIntensity * (1 + expr2 / (saturationIntensity + outputIntensity) - EXPR1[(int) j])) * EXPR * r)
                 .sum();
     }
 
