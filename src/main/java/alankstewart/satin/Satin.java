@@ -52,6 +52,10 @@ public final class Satin {
     public static final String LASER_FILE = "laser.dat";
     public static final String PIN_FILE = "pin.dat";
 
+    public record Gaussian(int inputPower, double outputPower, int saturationIntensity) { }
+
+    private record Laser(String outputFile, double smallSignalGain, int dischargePressure, String carbonDioxide) { }
+
     public static void main(final String[] args) {
         System.setProperty("java.util.logging.SimpleFormatter.format", "%5$s %n");
         var satin = new Satin();
@@ -137,11 +141,5 @@ public final class Satin {
                         .reduce(inputIntensity * exp(-2 * pow(r, 2) / RAD2), (outputIntensity, j) ->
                                 outputIntensity * (1 + expr2 / (saturationIntensity + outputIntensity) - EXPR1[(int) j])) * EXPR * r)
                 .sum();
-    }
-
-    private record Laser(String outputFile, double smallSignalGain, int dischargePressure, String carbonDioxide) {
-    }
-
-    public record Gaussian(int inputPower, double outputPower, int saturationIntensity) {
     }
 }
