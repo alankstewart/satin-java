@@ -52,9 +52,11 @@ public final class Satin {
     public static final String LASER_FILE = "laser.dat";
     public static final String PIN_FILE = "pin.dat";
 
-    public record Gaussian(int inputPower, double outputPower, int saturationIntensity) { }
+    public record Gaussian(int inputPower, double outputPower, int saturationIntensity) {
+    }
 
-    private record Laser(String outputFile, double smallSignalGain, int dischargePressure, String carbonDioxide) { }
+    private record Laser(String outputFile, double smallSignalGain, int dischargePressure, String carbonDioxide) {
+    }
 
     public static void main(final String[] args) {
         System.setProperty("java.util.logging.SimpleFormatter.format", "%5$s %n");
@@ -91,18 +93,20 @@ public final class Satin {
 
     private String process(final int[] inputPowers, final Laser laser) throws IOException {
         var path = Paths.get(System.getProperty("user.dir")).resolve(laser.outputFile());
-        Files.writeString(path, STR."""
-                Start date: \{ISO_DATE_TIME.format(now())}
+        Files.writeString(path, String.format("""
+                        Start date: %s
+                        
+                        Gaussian Beam
+                        
+                        Pressure in Main Discharge = %skPa
+                        Small-signal Gain = %s
+                        CO2 via %s
+                        
+                        Pin       Pout                 Sat. Int      ln(Pout/Pin)   Pout-Pin
+                        (watts)   (watts)              (watts/cm2)                  (watts)
+                        """, ISO_DATE_TIME.format(now()), laser.dischargePressure(),
+                laser.smallSignalGain(), laser.carbonDioxide()), CREATE, TRUNCATE_EXISTING);
 
-                Gaussian Beam
-
-                Pressure in Main Discharge = \{laser.dischargePressure()}kPa
-                Small-signal Gain = \{laser.smallSignalGain()}
-                CO2 via \{laser.carbonDioxide()}
-
-                Pin       Pout                 Sat. Int      ln(Pout/Pin)   Pout-Pin
-                (watts)   (watts)              (watts/cm2)                  (watts)
-                """, CREATE, TRUNCATE_EXISTING);
 
         var lines = Arrays.stream(inputPowers)
                 .mapToObj(inputPower -> gaussianCalculation(inputPower, laser.smallSignalGain()))
@@ -116,7 +120,7 @@ public final class Satin {
                 .toList();
         Files.write(path, lines, APPEND);
 
-        Files.writeString(path, STR."\nEnd date: \{ISO_DATE_TIME.format(now())}", APPEND);
+        Files.writeString(path, String.format("%nEnd date: %s", ISO_DATE_TIME.format(now())), APPEND);
 
         return path.getFileName().toString();
     }
