@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -29,8 +30,7 @@ import static java.lang.Math.pow;
 import static java.nio.file.StandardOpenOption.APPEND;
 import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
-import static java.time.LocalDateTime.now;
-import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
+import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
 public final class Satin {
 
@@ -106,7 +106,7 @@ public final class Satin {
                             
                             Pin       Pout                 Sat. Int      ln(Pout/Pin)   Pout-Pin
                             (watts)   (watts)              (watts/cm2)                  (watts)
-                            """, ISO_DATE_TIME.format(now()), laser.dischargePressure(),
+                            """, ISO_LOCAL_DATE_TIME.format(LocalDateTime.now()), laser.dischargePressure(),
                     laser.smallSignalGain(), laser.carbonDioxide()), CREATE, TRUNCATE_EXISTING);
 
             var lines = Arrays.stream(inputPowers)
@@ -121,7 +121,7 @@ public final class Satin {
                     .toList();
 
             Files.write(path, lines, APPEND);
-            Files.writeString(path, String.format("%nEnd date: %s", ISO_DATE_TIME.format(now())), APPEND);
+            Files.writeString(path, String.format("%nEnd date: %s", ISO_LOCAL_DATE_TIME.format(LocalDateTime.now())), APPEND);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
