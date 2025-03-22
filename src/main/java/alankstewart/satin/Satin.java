@@ -7,11 +7,13 @@ package alankstewart.satin;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Scanner;
-import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -24,7 +26,6 @@ import static java.lang.Integer.parseInt;
 import static java.lang.Math.PI;
 import static java.lang.Math.exp;
 import static java.lang.Math.pow;
-import static java.lang.System.nanoTime;
 import static java.nio.file.StandardOpenOption.APPEND;
 import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
@@ -65,23 +66,19 @@ public final class Satin {
     }
 
     private void calculate() {
-        final var start = nanoTime();
-        try (var is = Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream(LASER_FILE), "Laser data is null");
-             var sc = new Scanner(is);
-             var executorService = Executors.newVirtualThreadPerTaskExecutor()) {
+        final var start = Instant.now();
+        try (var executor = Executors.newVirtualThreadPerTaskExecutor();
+             var is = Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream(LASER_FILE), "Laser data is null");
+             var sc = new Scanner(is)) {
             final var inputPowers = getInputPowers();
-            var tasks = sc.findAll("((?:md|pi)[a-z]{2}\\.out)\\s+(\\d{2}\\.\\d)\\s+(\\d+)\\s+(MD|PI)")
+            sc.findAll("((?:md|pi)[a-z]{2}\\.out)\\s+(\\d{2}\\.\\d)\\s+(\\d+)\\s+(MD|PI)")
                     .map(mr -> new Laser(mr.group(1), parseDouble(mr.group(2)), parseInt(mr.group(3)), mr.group(4)))
-                    .map(laser -> (Callable<String>) () -> process(inputPowers, laser))
-                    .toList();
-            executorService.invokeAll(tasks);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            LOGGER.severe(e.getMessage());
+                    .map(laser -> CompletableFuture.runAsync(() -> process(inputPowers, laser), executor))
+                    .forEach(CompletableFuture::join);
         } catch (Exception e) {
             LOGGER.severe(e.getMessage());
         } finally {
-            LOGGER.log(Level.INFO, "The time was {0} seconds", (nanoTime() - start) / 1E9);
+            LOGGER.log(Level.INFO, "The time was {0} seconds", Duration.between(start, Instant.now()).toNanos() / 1E9);
         }
     }
 
@@ -95,38 +92,40 @@ public final class Satin {
         }
     }
 
-    private String process(final int[] inputPowers, final Laser laser) throws IOException {
-        var path = Paths.get(System.getProperty("user.dir")).resolve(laser.outputFile());
-        Files.writeString(path, String.format("""
-                        Start date: %s
-                        
-                        Gaussian Beam
-                        
-                        Pressure in Main Discharge = %skPa
-                        Small-signal Gain = %s
-                        CO2 via %s
-                        
-                        Pin       Pout                 Sat. Int      ln(Pout/Pin)   Pout-Pin
-                        (watts)   (watts)              (watts/cm2)                  (watts)
-                        """, ISO_DATE_TIME.format(now()), laser.dischargePressure(),
-                laser.smallSignalGain(), laser.carbonDioxide()), CREATE, TRUNCATE_EXISTING);
+    private void process(final int[] inputPowers, final Laser laser) {
+        try {
+            var path = Paths.get(System.getProperty("user.dir")).resolve(laser.outputFile());
+            Files.writeString(path, String.format("""
+                            Start date: %s
+                            
+                            Gaussian Beam
+                            
+                            Pressure in Main Discharge = %skPa
+                            Small-signal Gain = %s
+                            CO2 via %s
+                            
+                            Pin       Pout                 Sat. Int      ln(Pout/Pin)   Pout-Pin
+                            (watts)   (watts)              (watts/cm2)                  (watts)
+                            """, ISO_DATE_TIME.format(now()), laser.dischargePressure(),
+                    laser.smallSignalGain(), laser.carbonDioxide()), CREATE, TRUNCATE_EXISTING);
 
 
-        var lines = Arrays.stream(inputPowers)
-                .mapToObj(inputPower -> gaussianCalculation(inputPower, laser.smallSignalGain()))
-                .flatMap(List::stream)
-                .map(gaussian -> "%-10s%-21.14f%-14s%5.3f%16.3f".formatted(
-                        gaussian.inputPower,
-                        gaussian.outputPower,
-                        gaussian.saturationIntensity,
-                        Math.log(gaussian.outputPower / gaussian.inputPower),
-                        gaussian.outputPower - gaussian.inputPower))
-                .toList();
-        Files.write(path, lines, APPEND);
+            var lines = Arrays.stream(inputPowers)
+                    .mapToObj(inputPower -> gaussianCalculation(inputPower, laser.smallSignalGain()))
+                    .flatMap(List::stream)
+                    .map(gaussian -> "%-10s%-21.14f%-14s%5.3f%16.3f".formatted(
+                            gaussian.inputPower,
+                            gaussian.outputPower,
+                            gaussian.saturationIntensity,
+                            Math.log(gaussian.outputPower / gaussian.inputPower),
+                            gaussian.outputPower - gaussian.inputPower))
+                    .toList();
 
-        Files.writeString(path, String.format("%nEnd date: %s", ISO_DATE_TIME.format(now())), APPEND);
-
-        return path.getFileName().toString();
+            Files.write(path, lines, APPEND);
+            Files.writeString(path, String.format("%nEnd date: %s", ISO_DATE_TIME.format(now())), APPEND);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     List<Gaussian> gaussianCalculation(final int inputPower, final double smallSignalGain) {
