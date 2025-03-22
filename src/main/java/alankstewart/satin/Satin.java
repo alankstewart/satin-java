@@ -109,7 +109,6 @@ public final class Satin {
                             """, ISO_DATE_TIME.format(now()), laser.dischargePressure(),
                     laser.smallSignalGain(), laser.carbonDioxide()), CREATE, TRUNCATE_EXISTING);
 
-
             var lines = Arrays.stream(inputPowers)
                     .mapToObj(inputPower -> gaussianCalculation(inputPower, laser.smallSignalGain()))
                     .flatMap(List::stream)
