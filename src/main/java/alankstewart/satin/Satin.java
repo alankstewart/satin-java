@@ -4,6 +4,7 @@
 
 package alankstewart.satin;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -27,7 +28,6 @@ import static java.lang.Integer.parseInt;
 import static java.lang.Math.PI;
 import static java.lang.Math.exp;
 import static java.lang.Math.pow;
-import static java.nio.file.StandardOpenOption.APPEND;
 import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
@@ -93,35 +93,43 @@ public final class Satin {
     }
 
     private void process(final int[] inputPowers, final Laser laser) {
-        try {
-            var path = Paths.get(System.getProperty("user.dir")).resolve(laser.outputFile());
-            Files.writeString(path, String.format("""
-                            Start date: %s
-                            
-                            Gaussian Beam
-                            
-                            Pressure in Main Discharge = %skPa
-                            Small-signal Gain = %s
-                            CO2 via %s
-                            
-                            Pin       Pout                 Sat. Int      ln(Pout/Pin)   Pout-Pin
-                            (watts)   (watts)              (watts/cm2)                  (watts)
-                            """, ISO_LOCAL_DATE_TIME.format(LocalDateTime.now()), laser.dischargePressure(),
-                    laser.smallSignalGain(), laser.carbonDioxide()), CREATE, TRUNCATE_EXISTING);
+        var path = Paths.get(System.getProperty("user.dir")).resolve(laser.outputFile());
+        try (var writer = Files.newBufferedWriter(path, CREATE, TRUNCATE_EXISTING)) {
+            writer.write("""
+                    Start date: %s
+                    
+                    Gaussian Beam
+                    
+                    Pressure in Main Discharge = %skPa
+                    Small-signal Gain = %s
+                    CO2 via %s
+                    
+                    Pin       Pout                 Sat. Int      ln(Pout/Pin)   Pout-Pin
+                    (watts)   (watts)              (watts/cm2)                  (watts)
+                    """.formatted(
+                    ISO_LOCAL_DATE_TIME.format(LocalDateTime.now()),
+                    laser.dischargePressure(),
+                    laser.smallSignalGain(),
+                    laser.carbonDioxide()));
 
-            var lines = Arrays.stream(inputPowers)
+            Arrays.stream(inputPowers)
                     .mapToObj(inputPower -> gaussianCalculation(inputPower, laser.smallSignalGain()))
                     .flatMap(List::stream)
-                    .map(gaussian -> "%-10s%-21.14f%-14s%5.3f%16.3f".formatted(
-                            gaussian.inputPower,
-                            gaussian.outputPower,
-                            gaussian.saturationIntensity,
-                            Math.log(gaussian.outputPower / gaussian.inputPower),
-                            gaussian.outputPower - gaussian.inputPower))
-                    .toList();
+                    .forEach(gaussian -> writeGaussian(gaussian, writer));
+            writer.write("%nEnd date: %s".formatted(ISO_LOCAL_DATE_TIME.format(LocalDateTime.now())));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-            Files.write(path, lines, APPEND);
-            Files.writeString(path, String.format("%nEnd date: %s", ISO_LOCAL_DATE_TIME.format(LocalDateTime.now())), APPEND);
+    private void writeGaussian(Gaussian gaussian, BufferedWriter writer) {
+        try {
+            writer.write("%-10s%-21.14f%-14s%5.3f%16.3f%n".formatted(
+                    gaussian.inputPower,
+                    gaussian.outputPower,
+                    gaussian.saturationIntensity,
+                    Math.log(gaussian.outputPower / gaussian.inputPower),
+                    gaussian.outputPower - gaussian.inputPower));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
