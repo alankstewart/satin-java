@@ -51,9 +51,9 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.13.0</version>
                 <configuration>
-                    <release>23</release>
-                    <source>23</source>
-                    <target>23</target>
+                    <release>24</release>
+                    <source>24</source>
+                    <target>24</target>
                     <compilerArgs>
                         <arg>--enable-preview</arg>
                     </compilerArgs>
