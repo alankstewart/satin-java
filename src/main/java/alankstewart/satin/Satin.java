@@ -183,7 +183,7 @@ public final class Satin {
         if (Objects.nonNull(e)) {
             LOGGER.severe(e.getMessage());
         } else {
-            LOGGER.log(Level.FINE, "Successfully created {0}", path.toFile().getName());
+            LOGGER.log(Level.FINE, "Successfully created {0}", path);
         }
         return null;
     }
