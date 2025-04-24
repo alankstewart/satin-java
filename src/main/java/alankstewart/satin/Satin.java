@@ -102,7 +102,7 @@ public final class Satin {
                     .filter(Matcher::matches)
                     .map(Laser::new)
                     .map(laser -> CompletableFuture.supplyAsync(() -> process(inputPowers, laser), executor)
-                            .handle(this::logProcessResult))
+                            .handle(this::log))
                     .forEach(CompletableFuture::join);
         } catch (Exception e) {
             LOGGER.severe(e.getMessage());
@@ -179,7 +179,7 @@ public final class Satin {
                 .sum();
     }
 
-    private Void logProcessResult(Path path, Throwable e) {
+    private Void log(Path path, Throwable e) {
         if (Objects.nonNull(e)) {
             LOGGER.severe(e.getMessage());
         } else {
