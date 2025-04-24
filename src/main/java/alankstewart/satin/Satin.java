@@ -11,15 +11,13 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.Scanner;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.MatchResult;
+import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
@@ -31,6 +29,7 @@ import static java.lang.Math.pow;
 import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+import static java.util.Comparator.comparingInt;
 
 public final class Satin {
 
@@ -113,9 +112,10 @@ public final class Satin {
                     laser.carbonDioxide()));
 
             Arrays.stream(inputPowers)
+                    .parallel()
                     .mapToObj(inputPower -> gaussianCalculation(inputPower, laser.smallSignalGain()))
                     .flatMap(List::stream)
-                    .forEach(gaussian -> writeGaussian(gaussian, writer));
+                    .forEachOrdered(gaussian -> writeGaussian(gaussian, writer));
             writer.write("%nEnd date: %s".formatted(ISO_LOCAL_DATE_TIME.format(LocalDateTime.now())));
         } catch (IOException e) {
             throw new RuntimeException(e);
