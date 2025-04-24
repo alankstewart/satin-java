@@ -6,25 +6,24 @@ package alankstewart.satin;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
-import java.util.Scanner;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.MatchResult;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
-import static java.lang.Double.parseDouble;
-import static java.lang.Integer.parseInt;
 import static java.lang.Math.*;
 import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
@@ -48,8 +47,10 @@ public final class Satin {
             .mapToDouble(i -> ((double) i - (INCR >> 1)) / 25)
             .map(zInc -> 2 * zInc * DZ / (Z12 + pow(zInc, 2)))
             .toArray();
-    public static final String LASER_FILE = "laser.dat";
-    public static final String PIN_FILE = "pin.dat";
+    private static final String LASER_FILE = "laser.dat";
+    private static final String PIN_FILE = "pin.dat";
+    private static final Pattern INPUT_POWERS_PATTERN = Pattern.compile("\\d+");
+    private static final Pattern LASER_PATTERN = Pattern.compile("((?:md|pi)[a-z]{2}\\.out)\\s+(\\d{2}\\.\\d)\\s+(\\d+)\\s+(MD|PI)");
 
     public record Gaussian(int inputPower, double outputPower, int saturationIntensity) {
     }
@@ -65,12 +66,18 @@ public final class Satin {
 
     private void calculate() {
         final var start = Instant.now();
+
         try (var executor = Executors.newVirtualThreadPerTaskExecutor();
-             var is = Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream(LASER_FILE), "Laser data is null");
-             var sc = new Scanner(is)) {
-            final var inputPowers = getInputPowers();
-            sc.findAll("((?:md|pi)[a-z]{2}\\.out)\\s+(\\d{2}\\.\\d)\\s+(\\d+)\\s+(MD|PI)")
-                    .map(mr -> new Laser(mr.group(1), parseDouble(mr.group(2)), parseInt(mr.group(3)), mr.group(4)))
+             var lines = Files.lines(Path.of(ClassLoader.getSystemResource(LASER_FILE).toURI()))) {
+            var inputPowers = getInputPowers();
+            lines
+                    .map(LASER_PATTERN::matcher)
+                    .filter(Matcher::matches)
+                    .map(m -> new Laser(
+                            m.group(1),
+                            Double.parseDouble(m.group(2)),
+                            Integer.parseInt(m.group(3)),
+                            m.group(4)))
                     .map(laser -> CompletableFuture.runAsync(() -> process(inputPowers, laser), executor))
                     .forEach(CompletableFuture::join);
         } catch (Exception e) {
@@ -80,11 +87,13 @@ public final class Satin {
         }
     }
 
-    private int[] getInputPowers() throws IOException {
-        try (var is = Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream(PIN_FILE), "Input power data is null");
-             var sc = new Scanner(is)) {
-            return sc.findAll("\\d+")
-                    .map(MatchResult::group)
+    private int[] getInputPowers() throws IOException, URISyntaxException {
+        var path = Path.of(ClassLoader.getSystemResource(PIN_FILE).toURI());
+        try (var lines = Files.lines(path)) {
+            return lines
+                    .map(INPUT_POWERS_PATTERN::matcher)
+                    .filter(Matcher::matches)
+                    .map(Matcher::group)
                     .mapToInt(Integer::parseInt)
                     .toArray();
         }
