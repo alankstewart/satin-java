@@ -25,12 +25,12 @@ import java.util.stream.IntStream;
 
 import static java.lang.Math.PI;
 import static java.lang.Math.exp;
-import static java.lang.Math.log;
 import static java.lang.Math.pow;
-import static java.nio.file.StandardOpenOption.APPEND;
 import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
+import static java.nio.file.StandardOpenOption.WRITE;
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+import static java.util.stream.Collectors.joining;
 
 public final class Satin {
 
@@ -56,6 +56,25 @@ public final class Satin {
     private static final Pattern LASER_PATTERN = Pattern.compile("((?:md|pi)[a-z]{2}\\.out)\\s+(\\d{2}\\.\\d)\\s+(\\d+)\\s+(MD|PI)");
 
     public record Gaussian(int inputPower, double outputPower, int saturationIntensity) {
+
+        public double logOutputPowerDividedByInputPower() {
+            return Math.log(outputPower / inputPower);
+        }
+
+        public double outputPowerMinusInputPower() {
+            return outputPower - inputPower;
+        }
+
+        @Override
+        public String toString() {
+            return "%-10s%-21.14f%-14s%5.3f%16.3f%s".formatted(
+                    inputPower,
+                    outputPower,
+                    saturationIntensity,
+                    logOutputPowerDividedByInputPower(),
+                    outputPowerMinusInputPower(),
+                    System.lineSeparator());
+        }
     }
 
     private record Laser(String outputFile, double smallSignalGain, int dischargePressure, String carbonDioxide) {
@@ -104,8 +123,8 @@ public final class Satin {
 
     private void process(final int[] inputPowers, final Laser laser) {
         var path = Paths.get(System.getProperty("user.dir")).resolve(laser.outputFile());
-        try (var writer = Files.newBufferedWriter(path, CREATE, TRUNCATE_EXISTING)) {
-            writer.write("""
+        try {
+            var header = """
                     Start date: %s
                     
                     Gaussian Beam
@@ -120,22 +139,17 @@ public final class Satin {
                     ISO_LOCAL_DATE_TIME.format(LocalDateTime.now()),
                     laser.dischargePressure(),
                     laser.smallSignalGain(),
-                    laser.carbonDioxide()));
+                    laser.carbonDioxide());
 
             var gaussianLines = Arrays.stream(inputPowers)
                     .parallel()
                     .mapToObj(inputPower -> gaussianCalculation(inputPower, laser.smallSignalGain()))
                     .flatMap(List::stream)
-                    .map(gaussian -> "%-10s%-21.14f%-14s%5.3f%16.3f".formatted(
-                            gaussian.inputPower,
-                            gaussian.outputPower,
-                            gaussian.saturationIntensity,
-                            log(gaussian.outputPower / gaussian.inputPower),
-                            gaussian.outputPower - gaussian.inputPower))
-                    .toList();
-            Files.write(path, gaussianLines, APPEND);
+                    .map(Gaussian::toString)
+                    .collect(joining());
 
-            writer.write("%nEnd date: %s".formatted(ISO_LOCAL_DATE_TIME.format(LocalDateTime.now())));
+            var footer = "%nEnd date: %s".formatted(ISO_LOCAL_DATE_TIME.format(LocalDateTime.now()));
+            Files.writeString(path, header + gaussianLines + footer, CREATE, WRITE, TRUNCATE_EXISTING);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
