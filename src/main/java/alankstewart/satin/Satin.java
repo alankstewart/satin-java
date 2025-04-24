@@ -14,6 +14,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
@@ -100,7 +101,8 @@ public final class Satin {
                     .map(LASER_PATTERN::matcher)
                     .filter(Matcher::matches)
                     .map(Laser::new)
-                    .map(laser -> CompletableFuture.runAsync(() -> process(inputPowers, laser), executor))
+                    .map(laser -> CompletableFuture.supplyAsync(() -> process(inputPowers, laser), executor)
+                            .handle(this::logProcessResult))
                     .forEach(CompletableFuture::join);
         } catch (Exception e) {
             LOGGER.severe(e.getMessage());
@@ -121,7 +123,7 @@ public final class Satin {
         }
     }
 
-    private void process(final int[] inputPowers, final Laser laser) {
+    private Path process(final int[] inputPowers, final Laser laser) {
         try {
             var header = """
                     Start date: %s
@@ -150,7 +152,7 @@ public final class Satin {
             var footer = "%nEnd date: %s".formatted(ISO_LOCAL_DATE_TIME.format(LocalDateTime.now()));
 
             var path = Paths.get(System.getProperty("user.dir")).resolve(laser.outputFile());
-            Files.writeString(path, header + gaussianLines + footer, CREATE, WRITE, TRUNCATE_EXISTING);
+            return Files.writeString(path, header + gaussianLines + footer, CREATE, WRITE, TRUNCATE_EXISTING);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -175,5 +177,14 @@ public final class Satin {
                         .reduce(inputIntensity * exp(-2 * pow(r, 2) / RAD2), (outputIntensity, j) ->
                                 outputIntensity * (1 + expr2 / (saturationIntensity + outputIntensity) - EXPR1[(int) j])) * EXPR * r)
                 .sum();
+    }
+
+    private Void logProcessResult(Path path, Throwable e) {
+        if (Objects.nonNull(e)) {
+            LOGGER.severe(e.getMessage());
+        } else {
+            LOGGER.log(Level.FINE, "Successfully created {0}", path.toFile().getName());
+        }
+        return null;
     }
 }
