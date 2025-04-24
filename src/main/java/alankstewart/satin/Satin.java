@@ -78,6 +78,10 @@ public final class Satin {
     }
 
     private record Laser(String outputFile, double smallSignalGain, int dischargePressure, String carbonDioxide) {
+
+        public Laser(Matcher matcher) {
+            this(matcher.group(1), Double.parseDouble(matcher.group(2)), Integer.parseInt(matcher.group(3)), matcher.group(4));
+        }
     }
 
     public static void main(final String[] args) {
@@ -95,11 +99,7 @@ public final class Satin {
             lines
                     .map(LASER_PATTERN::matcher)
                     .filter(Matcher::matches)
-                    .map(matcher -> new Laser(
-                            matcher.group(1),
-                            Double.parseDouble(matcher.group(2)),
-                            Integer.parseInt(matcher.group(3)),
-                            matcher.group(4)))
+                    .map(Laser::new)
                     .map(laser -> CompletableFuture.runAsync(() -> process(inputPowers, laser), executor))
                     .forEach(CompletableFuture::join);
         } catch (Exception e) {
