@@ -124,34 +124,34 @@ public final class Satin {
     }
 
     private Path process(final int[] inputPowers, final Laser laser) {
+        var header = """
+                Start date: %s
+                
+                Gaussian Beam
+                
+                Pressure in Main Discharge = %skPa
+                Small-signal Gain = %s
+                CO2 via %s
+                
+                Pin       Pout                 Sat. Int      ln(Pout/Pin)   Pout-Pin
+                (watts)   (watts)              (watts/cm2)                  (watts)
+                """.formatted(
+                ISO_LOCAL_DATE_TIME.format(LocalDateTime.now()),
+                laser.dischargePressure(),
+                laser.smallSignalGain(),
+                laser.carbonDioxide());
+
+        var gaussianLines = Arrays.stream(inputPowers)
+                .parallel()
+                .mapToObj(inputPower -> gaussianCalculation(inputPower, laser.smallSignalGain()))
+                .flatMap(List::stream)
+                .map(Gaussian::toString)
+                .collect(joining());
+
+        var footer = "%nEnd date: %s".formatted(ISO_LOCAL_DATE_TIME.format(LocalDateTime.now()));
+
+        var path = Paths.get(System.getProperty("user.dir")).resolve(laser.outputFile());
         try {
-            var header = """
-                    Start date: %s
-                    
-                    Gaussian Beam
-                    
-                    Pressure in Main Discharge = %skPa
-                    Small-signal Gain = %s
-                    CO2 via %s
-                    
-                    Pin       Pout                 Sat. Int      ln(Pout/Pin)   Pout-Pin
-                    (watts)   (watts)              (watts/cm2)                  (watts)
-                    """.formatted(
-                    ISO_LOCAL_DATE_TIME.format(LocalDateTime.now()),
-                    laser.dischargePressure(),
-                    laser.smallSignalGain(),
-                    laser.carbonDioxide());
-
-            var gaussianLines = Arrays.stream(inputPowers)
-                    .parallel()
-                    .mapToObj(inputPower -> gaussianCalculation(inputPower, laser.smallSignalGain()))
-                    .flatMap(List::stream)
-                    .map(Gaussian::toString)
-                    .collect(joining());
-
-            var footer = "%nEnd date: %s".formatted(ISO_LOCAL_DATE_TIME.format(LocalDateTime.now()));
-
-            var path = Paths.get(System.getProperty("user.dir")).resolve(laser.outputFile());
             return Files.writeString(path, header + gaussianLines + footer, CREATE, WRITE, TRUNCATE_EXISTING);
         } catch (IOException e) {
             throw new RuntimeException(e);
