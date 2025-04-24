@@ -73,11 +73,11 @@ public final class Satin {
             lines
                     .map(LASER_PATTERN::matcher)
                     .filter(Matcher::matches)
-                    .map(m -> new Laser(
-                            m.group(1),
-                            Double.parseDouble(m.group(2)),
-                            Integer.parseInt(m.group(3)),
-                            m.group(4)))
+                    .map(matcher -> new Laser(
+                            matcher.group(1),
+                            Double.parseDouble(matcher.group(2)),
+                            Integer.parseInt(matcher.group(3)),
+                            matcher.group(4)))
                     .map(laser -> CompletableFuture.runAsync(() -> process(inputPowers, laser), executor))
                     .forEach(CompletableFuture::join);
         } catch (Exception e) {
