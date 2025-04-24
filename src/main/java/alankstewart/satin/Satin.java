@@ -122,7 +122,6 @@ public final class Satin {
     }
 
     private void process(final int[] inputPowers, final Laser laser) {
-        var path = Paths.get(System.getProperty("user.dir")).resolve(laser.outputFile());
         try {
             var header = """
                     Start date: %s
@@ -149,6 +148,8 @@ public final class Satin {
                     .collect(joining());
 
             var footer = "%nEnd date: %s".formatted(ISO_LOCAL_DATE_TIME.format(LocalDateTime.now()));
+
+            var path = Paths.get(System.getProperty("user.dir")).resolve(laser.outputFile());
             Files.writeString(path, header + gaussianLines + footer, CREATE, WRITE, TRUNCATE_EXISTING);
         } catch (IOException e) {
             throw new RuntimeException(e);
