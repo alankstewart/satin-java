@@ -56,6 +56,13 @@ public final class Satin {
     private static final Pattern INPUT_POWERS_PATTERN = Pattern.compile("\\d+");
     private static final Pattern LASER_PATTERN = Pattern.compile("((?:md|pi)[a-z]{2}\\.out)\\s+(\\d{2}\\.\\d)\\s+(\\d+)\\s+(MD|PI)");
 
+    private record Laser(String outputFile, double smallSignalGain, int dischargePressure, String carbonDioxide) {
+
+        public Laser(Matcher matcher) {
+            this(matcher.group(1), Double.parseDouble(matcher.group(2)), Integer.parseInt(matcher.group(3)), matcher.group(4));
+        }
+    }
+
     public record Gaussian(int inputPower, double outputPower, int saturationIntensity) {
 
         public double logOutputPowerDividedByInputPower() {
@@ -75,13 +82,6 @@ public final class Satin {
                     logOutputPowerDividedByInputPower(),
                     outputPowerMinusInputPower(),
                     System.lineSeparator());
-        }
-    }
-
-    private record Laser(String outputFile, double smallSignalGain, int dischargePressure, String carbonDioxide) {
-
-        public Laser(Matcher matcher) {
-            this(matcher.group(1), Double.parseDouble(matcher.group(2)), Integer.parseInt(matcher.group(3)), matcher.group(4));
         }
     }
 
