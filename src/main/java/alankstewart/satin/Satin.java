@@ -85,7 +85,7 @@ public final class Satin {
         }
     }
 
-    public static void main(final String[] args) {
+    static void main(final String[] args) {
         System.setProperty("java.util.logging.SimpleFormatter.format", "%5$s %n");
         var satin = new Satin();
         satin.calculate();
