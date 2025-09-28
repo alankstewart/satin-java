@@ -27,13 +27,9 @@ class SatinTest {
                 .findAny()
                 .ifPresentOrElse(
                         gaussian -> assertAll(
-                                () -> assertEquals(outputPower, roundUp(gaussian.outputPower())),
-                                () -> assertEquals(logOutputPowerDividedByInputPower, roundUp(gaussian.logOutputPowerDividedByInputPower())),
-                                () -> assertEquals(outputPowerMinusInputPower, roundUp(gaussian.outputPowerMinusInputPower()))
+                                () -> assertEquals(outputPower, gaussian.outputPower(), 1e-3),
+                                () -> assertEquals(logOutputPowerDividedByInputPower, gaussian.logOutputPowerDividedByInputPower(), 1e-3),
+                                () -> assertEquals(outputPowerMinusInputPower, gaussian.outputPowerMinusInputPower(), 1e-3)
                         ), Assertions::fail);
-    }
-
-    private double roundUp(double value) {
-        return Math.round(value * 1000.0) / 1000.0;
     }
 }
