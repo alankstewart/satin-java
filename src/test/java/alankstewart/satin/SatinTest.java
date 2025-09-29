@@ -1,16 +1,29 @@
 package alankstewart.satin;
 
-import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvFileSource;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
+
+import static java.util.stream.Collectors.toMap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Created by alanstewart on 26/03/15.
  */
 class SatinTest {
+
+    private static Satin satin;
+    private static final Map<String, Map<Integer, Satin.Gaussian>> cache = new HashMap<>();
+
+    @BeforeAll
+    static void setUp() {
+        satin = new Satin();
+    }
 
     @ParameterizedTest
     @CsvFileSource(resources = "/satin.csv")
@@ -20,16 +33,14 @@ class SatinTest {
                                   double outputPower,
                                   double logOutputPowerDividedByInputPower,
                                   double outputPowerMinusInputPower) {
-        var satin = new Satin();
+        var gaussian = cache.computeIfAbsent(inputPower + ":" + smallSignalGain,
+                        k -> satin.gaussianCalculation(inputPower, smallSignalGain).stream()
+                                .collect(toMap(Satin.Gaussian::saturationIntensity, Function.identity())))
+                .get(saturationIntensity);
+        assertNotNull(gaussian);
 
-        satin.gaussianCalculation(inputPower, smallSignalGain).stream()
-                .filter(gaussian -> gaussian.saturationIntensity() == saturationIntensity)
-                .findAny()
-                .ifPresentOrElse(
-                        gaussian -> assertAll(
-                                () -> assertEquals(outputPower, gaussian.outputPower(), 1e-3),
-                                () -> assertEquals(logOutputPowerDividedByInputPower, gaussian.logOutputPowerDividedByInputPower(), 1e-3),
-                                () -> assertEquals(outputPowerMinusInputPower, gaussian.outputPowerMinusInputPower(), 1e-3)
-                        ), Assertions::fail);
+        assertEquals(outputPower, gaussian.outputPower(), 1e-3);
+        assertEquals(logOutputPowerDividedByInputPower, gaussian.logOutputPowerDividedByInputPower(), 1e-3);
+        assertEquals(outputPowerMinusInputPower, gaussian.outputPowerMinusInputPower(), 1e-3);
     }
 }
