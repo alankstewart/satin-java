@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
+import java.util.function.DoubleUnaryOperator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -47,10 +48,10 @@ public final class Satin {
     private static final double Z12 = pow(Z1, 2);
     private static final double EXPR = 2 * PI * DR;
     private static final int INCR = 8001;
-    private static final double[] EXPR1 = IntStream.range(0, INCR)
-            .mapToDouble(i -> ((double) i - (INCR >> 1)) / 25)
-            .map(zInc -> 2 * zInc * DZ / (Z12 + pow(zInc, 2)))
-            .toArray();
+    private static final DoubleUnaryOperator EXPR1 = j -> {
+        var zInc = (j - (INCR >> 1)) / 25;
+        return 2 * zInc * DZ / (Z12 + pow(zInc, 2));
+    };
     private static final String LASER_FILE = "laser.dat";
     private static final String PIN_FILE = "pin.dat";
     private static final Pattern INPUT_POWERS_PATTERN = Pattern.compile("\\d+");
@@ -150,7 +151,7 @@ public final class Satin {
 
         var footer = "%nEnd date: %s".formatted(ISO_LOCAL_DATE_TIME.format(LocalDateTime.now()));
 
-        var path = Paths.get(System.getProperty("user.dir")).resolve(laser.outputFile());
+        var path = Paths.get("").toAbsolutePath().resolve(laser.outputFile());
         try {
             return Files.writeString(path, header + gaussianLines + footer, CREATE, WRITE, TRUNCATE_EXISTING);
         } catch (IOException e) {
@@ -175,7 +176,7 @@ public final class Satin {
                 .parallel()
                 .map(r -> DoubleStream.iterate(0, j -> j < INCR, j -> j + 1)
                         .reduce(inputIntensity * exp(-2 * pow(r, 2) / RAD2), (outputIntensity, j) ->
-                                outputIntensity * (1 + expr2 / (saturationIntensity + outputIntensity) - EXPR1[(int) j])) * EXPR * r)
+                                outputIntensity * (1 + expr2 / (saturationIntensity + outputIntensity) - EXPR1.applyAsDouble(j))) * EXPR * r)
                 .sum();
     }
 
