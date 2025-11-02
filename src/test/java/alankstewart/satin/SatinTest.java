@@ -4,8 +4,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvFileSource;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 import static java.util.stream.Collectors.toMap;
@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 class SatinTest {
 
     private static Satin satin;
-    private static final Map<String, Map<Integer, Satin.Gaussian>> cache = new HashMap<>();
+    private static final Map<String, Map<Integer, Satin.Gaussian>> cache = new ConcurrentHashMap<>();
 
     @BeforeAll
     static void setUp() {
