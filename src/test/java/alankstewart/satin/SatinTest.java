@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 class SatinTest {
 
     private static Satin satin;
-    private static final Map<String, Map<Integer, Satin.Gaussian>> cache = new ConcurrentHashMap<>();
+    private static final Map<String, Map<Integer, Satin.Gaussian>> CACHE = new ConcurrentHashMap<>();
 
     @BeforeAll
     static void setUp() {
@@ -33,7 +33,7 @@ class SatinTest {
                                   double outputPower,
                                   double logOutputPowerDividedByInputPower,
                                   double outputPowerMinusInputPower) {
-        var gaussian = cache.computeIfAbsent(inputPower + ":" + smallSignalGain,
+        var gaussian = CACHE.computeIfAbsent(inputPower + ":" + smallSignalGain,
                         k -> satin.gaussianCalculation(inputPower, smallSignalGain).stream()
                                 .collect(toMap(Satin.Gaussian::saturationIntensity, Function.identity())))
                 .get(saturationIntensity);
